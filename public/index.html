@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notion DB 뷰어 - 따뜻한 효율성</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- JetBrains Mono 웹폰트 -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- vis.js 라이브러리 -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- 🎯 로그인 뷰 -->
+        <div id="loginView" class="login-container">
+            <div class="login-card-wrapper">
+                <div class="login-card">
+                    <!-- 브랜드 로고 -->
+                    <div class="login-brand">
+                        <span class="brand-icon">📚</span>
+                    </div>
+
+                    <!-- 설명 텍스트 -->
+                    <div class="login-description">
+                        <p>Notion 데이터베이스를 효율적으로 분석하고<br>시각화하세요.</p>
+                        <div class="feature-list">
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">안전한 Notion 연동</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">데이터 품질 분석</span>
+                            </div>
+                            <div class="feature-item">
+                                <span class="feature-icon">✓</span>
+                                <span class="feature-text">역관계 시각화</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA 버튼 -->
+                    <div class="login-actions">
+                        <a href="/auth/notion/login" class="btn btn-primary btn-large">
+                            <span class="btn-icon">🔐</span>
+                            <span class="btn-text">Notion으로 로그인</span>
+                        </a>
+                    </div>
+
+                    <!-- 하단 안내문 -->
+                    <div class="login-footer">
+                        <p>아무 개인 정보도 저장되지 않습니다. 안전하게 사용하세요.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🏠 메인 뷰 -->
+        <div id="mainView" class="main-container" style="display: none;">
+            <!-- 사이드바 -->
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <div class="app-logo">
+                        <span class="logo-icon">📚</span>
+                        <span class="logo-text">NotionDB</span>
+                    </div>
+                </div>
+
+                <nav class="sidebar-nav">
+                    <div class="nav-section">
+                        <button class="nav-item active" onclick="app.switchView('databases')">
+                            <span class="nav-icon">📊</span>
+                            <span class="nav-text">데이터베이스</span>
+                        </button>
+                    </div>
+                </nav>
+
+                <div class="sidebar-footer">
+                    <div class="user-card">
+                        <div class="user-avatar">👤</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName"></div>
+                            <a href="/logout" class="btn-logout">로그아웃</a>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 메인 콘텐츠 -->
+            <main class="main-content">
+                <!-- 📂 데이터베이스 목록 -->
+                <div id="databasesView" class="view-section">
+                    <div class="page-header">
+                        <h1 class="page-title">데이터베이스</h1>
+                        <p class="page-subtitle">당신의 Notion 워크스페이스에서 사용 가능한 데이터베이스들입니다</p>
+                    </div>
+
+                    <!-- 검색 및 필터링 -->
+                    <div class="databases-controls">
+                        <div class="search-box">
+                            <span class="search-icon">🔍</span>
+                            <input 
+                                type="text" 
+                                id="databaseSearchInput" 
+                                class="search-input" 
+                                placeholder="데이터베이스 검색..."
+                                onkeyup="app.onDatabaseSearch()"
+                            >
+                        </div>
+                        <div class="databases-info">
+                            <span id="databasesCount" class="count-text">총 0개</span>
+                        </div>
+                    </div>
+
+                    <div id="databasesList" class="databases-grid">
+                        <div class="loading-card">
+                            <div class="loading-spinner"></div>
+                            <p>데이터베이스 로딩 중...</p>
+                        </div>
+                    </div>
+
+                    <!-- 페이지네이션 -->
+                    <div id="databasesPagination" class="pagination" style="display: none;">
+                        <button class="pagination-btn" id="prevBtn" onclick="app.previousDatabasePage()">
+                            <span>← 이전</span>
+                        </button>
+                        <div class="pagination-info">
+                            <span id="pageInfo" class="page-text">1 / 1</span>
+                        </div>
+                        <button class="pagination-btn" id="nextBtn" onclick="app.nextDatabasePage()">
+                            <span>다음 →</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 📋 데이터베이스 상세 보기 -->
+                <div id="databaseDetail" class="view-section" style="display: none;">
+                    <div class="detail-header">
+                        <button class="btn btn-ghost" onclick="app.goBackToDatabases()">
+                            <span class="icon">←</span>
+                            <span>돌아가기</span>
+                        </button>
+                        <div class="detail-title-section">
+                            <h1 id="databaseTitle" class="detail-title"></h1>
+                        </div>
+                    </div>
+
+                    <!-- 탭 네비게이션 -->
+                    <div class="tabs-wrapper">
+                        <div class="tabs-container">
+                            <button class="tab-btn active" data-tab="data" onclick="app.switchTab('data')">
+                                <span class="tab-icon">📊</span>
+                                <span class="tab-label">데이터</span>
+                            </button>
+                            <button class="tab-btn" data-tab="analysis" onclick="app.switchTab('analysis')">
+                                <span class="tab-icon">📈</span>
+                                <span class="tab-label">분석</span>
+                            </button>
+                            <button class="tab-btn" data-tab="network" onclick="app.switchTab('network')">
+                                <span class="tab-icon">🕸️</span>
+                                <span class="tab-label">네트워크</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 탭 콘텐츠 -->
+                    
+                    <!-- 데이터 탭 -->
+                    <div id="dataTab" class="tab-content active">
+                        <div id="tablePlaceholder" class="card">
+                            <div class="card-content">
+                                <div class="loading-spinner"></div>
+                                <p>테이블 로딩 중...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 분석 탭 -->
+                    <div id="analysisTab" class="tab-content" style="display: none;">
+                        <div id="analysisPlaceholder" class="card">
+                            <div class="card-content">
+                                <div class="loading-spinner"></div>
+                                <p>분석 중...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 네트워크 탭 -->
+                    <div id="networkTab" class="tab-content" style="display: none;">
+                        <div class="network-wrapper">
+                            <div id="networkContainer" class="network-container">
+                                <div class="loading-spinner"></div>
+                                <p>네트워크 로딩 중...</p>
+                            </div>
+                            
+                            <!-- 우측 사이드바: 범례 + 컨텍스트 패널 -->
+                            <div class="network-sidebar">
+                                <!-- 범례 영역 -->
+                                <div id="networkLegend" class="network-legend">
+                                    <h3>범례</h3>
+                                    <div class="legend-item">
+                                        <span class="legend-dot current"></span>
+                                        <span>현재 데이터베이스</span>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-dot related"></span>
+                                        <span>연결된 데이터베이스</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- 컨텍스트 패널: 노드/엣지 선택 정보 표시 -->
+                                <div id="contextPanel" class="context-panel" style="display: none;">
+                                    <div id="relationsTableContainer">
+                                        <div class="card-header">
+                                            <h3>필드 정보</h3>
+                                            <button class="close-context-panel" onclick="app.closeContextPanel()">✕</button>
+                                        </div>
+                                        <div class="card-content">
+                                            <div class="table-wrapper">
+                                                <table class="relations-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>필드명</th>
+                                                            <th>소스 DB</th>
+                                                            <th>참조 대상 (DB.필드명)</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="relationsTableBody">
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- 알림 메시지 컨테이너 -->
+    <div id="messagesContainer" class="messages-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>

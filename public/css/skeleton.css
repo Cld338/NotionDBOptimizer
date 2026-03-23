@@ -1,0 +1,204 @@
+/* ============ 스켈레톤 UI 스타일 ============ */
+
+/* 스켈레톤 기본 스타일 */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--color-border) 0%,
+        var(--color-hover) 50%,
+        var(--color-border) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* 스켈레톤 카드 */
+.skeleton-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+/* 스켈레톤 텍스트 라인 */
+.skeleton-text {
+    height: 16px;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.skeleton-text.lg {
+    height: 24px;
+    margin-bottom: var(--spacing-md);
+}
+
+.skeleton-text.sm {
+    height: 12px;
+}
+
+/* 스켈레톤 이모지 */
+.skeleton-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--spacing-md);
+}
+
+/* 스켈레톤 그리드 - 데이터베이스 목록 */
+.skeleton-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.skeleton-database-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+}
+
+.skeleton-database-card .skeleton-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: var(--spacing-md);
+}
+
+.skeleton-database-card .skeleton-text.lg {
+    width: 70%;
+    margin-bottom: var(--spacing-md);
+}
+
+.skeleton-database-card .skeleton-text {
+    width: 100%;
+    height: 14px;
+}
+
+/* 스켈레톤 테이블 */
+.skeleton-table {
+    width: 100%;
+}
+
+.skeleton-table-header {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: 2px solid var(--color-border);
+}
+
+.skeleton-table-header .skeleton-text {
+    height: 18px;
+}
+
+.skeleton-table-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.skeleton-table-row .skeleton-text {
+    height: 16px;
+}
+
+.skeleton-table-row .skeleton-text:nth-child(1) {
+    width: 80%;
+}
+
+.skeleton-table-row .skeleton-text:nth-child(2) {
+    width: 90%;
+}
+
+.skeleton-table-row .skeleton-text:nth-child(3) {
+    width: 75%;
+}
+
+.skeleton-table-row .skeleton-text:nth-child(4) {
+    width: 85%;
+}
+
+/* 스켈레톤 분석 탭 */
+.skeleton-analysis {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.skeleton-stat-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    gap: var(--spacing-md);
+}
+
+.skeleton-stat-card .skeleton-icon {
+    width: 90px;
+    height: 90px;
+    margin: 0;
+}
+
+.skeleton-stat-card .skeleton-text.lg {
+    width: 60%;
+}
+
+.skeleton-stat-card .skeleton-text {
+    width: 90%;
+}
+
+.skeleton-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-border);
+}
+
+.skeleton-section .skeleton-text.lg {
+    width: 40%;
+    margin-bottom: var(--spacing-lg);
+}
+
+.skeleton-list-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--color-divider);
+}
+
+.skeleton-list-item .skeleton-text {
+    width: 100%;
+}
+
+.skeleton-list-item .skeleton-text:nth-child(1) {
+    height: 18px;
+}
+
+.skeleton-list-item .skeleton-text:nth-child(2) {
+    height: 14px;
+    width: 95%;
+}
+
+.skeleton-list-item .skeleton-text:nth-child(3) {
+    height: 12px;
+    width: 80%;
+}

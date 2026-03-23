@@ -1,0 +1,107 @@
+/* ============================================
+   WARM EFFICIENCY - 디자인 시스템
+   따뜻함과 효율성의 결합
+   ============================================ */
+
+/* ============ CSS 변수 정의 ============ */
+:root {
+    /* 컬러 팔레트 - 명도 대비 & WCAG 접근성 개선 */
+    --color-primary: #E69046;           /* Terracotta - 주요 포인트 */
+    --color-primary-deep: #AA442F;      /* Burnt Red - 깊은 강조 */
+    --color-secondary: #F0E8DC;         /* Subdued Warm Beige - 메인 배경 (명도 낮춤) */
+    --color-accent: #4D2E27;            /* Deep Brown - 텍스트 (검은색 대용) */
+    --color-neutral: #8B7B6F;           /* Darker Taupe - 비활성, 보조 텍스트 (WCAG 4.5:1) */
+    --color-surface: #FFFFFF;           /* Surface - 카드 배경 */
+    --color-success: #10b981;           /* Green - 성공/우수 */
+    --color-warning: #f59e0b;           /* Orange - 경고 */
+    --color-error: #ef4444;             /* Red - 에러/심각 */
+    
+    --color-text-dark: #4D2E27;         /* Deep Brown 텍스트 */
+    --color-text-light: #7A5A52;        /* 텍스트 부드럽게 */
+    --color-text-muted: #8B7B6F;        /* Darker Taupe 텍스트 (명도 강화) */
+    --color-border: #D9CEC1;            /* Cool Taupe - 카드 윤곽 명확화 */
+    --color-divider: #E5DBD0;           /* 구분선 (명도 조정) */
+    --color-hover: #FAF7F2;             /* 호버 배경 */
+
+    /* 그림자 - 심도 강화 (블러 감소, 투명도 증가) */
+    --shadow-xs: 0 1px 3px rgba(93, 64, 55, 0.08);
+    --shadow-sm: 0 2px 6px rgba(93, 64, 55, 0.10);
+    --shadow-md: 0 4px 12px rgba(93, 64, 55, 0.12);
+    --shadow-lg: 0 8px 24px rgba(93, 64, 55, 0.15);
+
+    /* 공간 - 여백의 미 확보 */
+    --spacing-xs: 6px;
+    --spacing-sm: 12px;
+    --spacing-md: 20px;
+    --spacing-lg: 32px;
+    --spacing-xl: 48px;
+    --spacing-2xl: 64px;
+
+    /* 라운딩 */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px; /* Design.md 지정 사이즈 */
+    --radius-xl: 24px;
+
+    /* 전환 - 찻물이 우러나는 속도 (부드럽게) */
+    --transition-fast: 200ms ease;
+    --transition-normal: 400ms ease;
+
+    /* 타이포그래피 */
+    --font-heading: 'Noto Serif KR', 'Pretendard', serif;
+    --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-code: 'JetBrains Mono', monospace;
+
+    /* Z-index */
+    --z-dropdown: 10;
+    --z-sticky: 20;
+    --z-fixed: 30;
+    --z-modal: 100;
+}
+
+/* ============ 기본 스타일 ============ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: var(--font-body);
+    background-color: var(--color-secondary);
+    color: var(--color-text-dark);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+}
+
+/* ============ 기본 요소 ============ */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--color-text-dark);
+}
+
+h1 { font-size: 2.2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.4rem; }
+h4 { font-size: 1.2rem; }
+h5 { font-size: 1.1rem; }
+h6 { font-size: 1rem; }
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--color-primary-deep);
+}

@@ -1,0 +1,21 @@
+/* ============ 인쇄 스타일 ============ */
+@media print {
+    .sidebar,
+    .tabs-wrapper,
+    .btn {
+        display: none;
+    }
+
+    body {
+        background: white;
+    }
+
+    .main-container {
+        flex-direction: column;
+    }
+
+    .main-content {
+        padding: 0;
+        margin-left: 0;
+    }
+}
