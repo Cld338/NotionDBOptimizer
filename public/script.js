@@ -721,10 +721,6 @@ const app = {
         const group = document.querySelector(`[data-group-id="${groupId}"]`);
         if (group) {
             group.classList.toggle('collapsed');
-            const toggle = group.querySelector('.opp-group-toggle');
-            if (toggle) {
-                toggle.style.transform = group.classList.contains('collapsed') ? 'rotate(0deg)' : 'rotate(90deg)';
-            }
         }
     },
 

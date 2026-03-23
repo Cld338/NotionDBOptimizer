@@ -46,6 +46,7 @@
     /* 전환 - 찻물이 우러나는 속도 (부드럽게) */
     --transition-fast: 200ms ease;
     --transition-normal: 400ms ease;
+    --transition-smooth: 500ms cubic-bezier(0.4, 0.0, 0.2, 1);
 
     /* 타이포그래피 */
     --font-heading: 'Noto Serif KR', 'Pretendard', serif;
