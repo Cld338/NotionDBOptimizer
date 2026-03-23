@@ -111,7 +111,7 @@
     background: var(--color-surface);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid var(--color-border);
     margin-bottom: var(--spacing-md);
     transition: all var(--transition-normal);
@@ -121,6 +121,7 @@
     padding: var(--spacing-md);
     max-height: 3000px;
     opacity: 1;
+    overflow: visible;
     transition: max-height 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 250ms ease-in-out, padding 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -129,6 +130,7 @@
     opacity: 0;
     padding-top: 0;
     padding-bottom: 0;
+    pointer-events: none;
     transition: max-height 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 250ms ease-in-out, padding 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -262,7 +264,7 @@
     background: transparent;
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-md);
-    overflow: hidden;
+    overflow: visible;
     transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
@@ -275,6 +277,7 @@
     background: linear-gradient(135deg, rgba(230, 144, 70, 0.03) 0%, transparent 100%);
     transition: all 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
     border-bottom: 1px solid var(--color-divider);
+    position: relative;
 }
 
 .opportunity-group.collapsed .opp-group-header {
@@ -350,11 +353,13 @@
     opacity: 1;
     overflow: hidden;
     transition: max-height 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 250ms ease-in-out;
+    position: relative;
 }
 
 .opportunity-group.collapsed .opp-group-content {
     max-height: 0;
     opacity: 0;
+    pointer-events: none;
     transition: max-height 350ms cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 250ms ease-in-out;
 }
 
