@@ -121,14 +121,3 @@
     font-size: 1.1rem;
     width: 100%;
 }
-
-.btn-ghost {
-    background: transparent;
-    color: var(--color-text-light);
-    border: 1px solid var(--color-border);
-}
-
-.btn-ghost:hover {
-    background: var(--color-secondary);
-    color: var(--color-accent);
-}

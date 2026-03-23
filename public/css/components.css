@@ -156,11 +156,6 @@ tr:hover td {
     margin-top: var(--spacing-md);
 }
 
-/* ============ 디테일 헤더 ============ */
-.detail-header {
-    margin-bottom: var(--spacing-lg);
-}
-
 .detail-title-section {
     margin-top: var(--spacing-md);
 }

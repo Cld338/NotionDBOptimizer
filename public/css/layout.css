@@ -85,8 +85,10 @@
 .nav-sub-items {
     display: flex;
     flex-direction: column;
-    padding: 8px 8px;
-    gap: 4px;
+    padding: 8px 0;
+    margin-left: 12px;
+    border-left: 2px solid var(--color-border);
+    gap: 0;
 }
 
 .nav-sub-item {
@@ -94,25 +96,25 @@
     align-items: center;
     gap: var(--spacing-md);
     width: 100%;
-    padding: 10px 16px;
-    padding-left: 40px;
+    padding: 10px 12px 10px 20px;
     background: transparent;
     border: none;
-    border-radius: var(--radius-md);
+    border-left: 2px solid transparent;
+    border-radius: 0;
     cursor: pointer;
     color: var(--color-text-light);
     font-size: 0.95rem;
     transition: all var(--transition-fast);
-    border-left: 3px solid transparent;
 }
 
 .nav-sub-item:hover {
-    background: var(--color-secondary);
+    background: rgba(230, 144, 70, 0.05);
     color: var(--color-accent);
+    border-left-color: var(--color-accent);
 }
 
 .nav-sub-item.active {
-    background: var(--color-secondary);
+    background: rgba(230, 144, 70, 0.1);
     color: var(--color-primary);
     border-left-color: var(--color-primary);
     font-weight: 500;

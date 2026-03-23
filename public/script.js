@@ -1041,12 +1041,6 @@ const app = {
         }
     },
 
-    goBackToDatabases() {
-        this.currentDatabaseId = null;
-        this.switchView('databases');
-        document.getElementById('tablePlaceholder').innerHTML = '<div class="card-content"><div class="loading-spinner"></div><p>테이블 로딩 중...</p></div>';
-    },
-
     escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
