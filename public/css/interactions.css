@@ -7,8 +7,7 @@
 }
 
 /* ============ 액션 버튼 및 복사 버튼 ============ */
-.action-btn,
-.copy-btn {
+.action-btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;

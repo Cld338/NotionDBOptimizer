@@ -366,7 +366,7 @@ const app = {
                     <h3 style="color: var(--color-error); margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: var(--spacing-sm);">
                         <span>⛔ 긴급 이슈</span>
                         <span style="font-size: 0.85rem; font-weight: 600; color: white; background: var(--color-error); padding: 2px 8px; border-radius: 4px;">${limits.warnings.length}개</span>
-                        <button class="copy-btn" onclick="app.copyReportToClipboard('warnings', this)" title="이슈 복사하기" style="margin-left: auto;">📋</button>
+
                     </h3>
                     <div class="warnings-list">
                         ${limits.warnings.map(warning => {
@@ -381,7 +381,6 @@ const app = {
                                     </div>
                                     <div class="item-actions">
                                         <button class="action-btn" onclick="app.openNotionDatabase()" title="Notion으로 이동">↗</button>
-                                        <button class="copy-btn" onclick="app.copyToClipboard('${this.escapeHtml(warning.message)}', this)" title="복사">📋</button>
                                     </div>
                                 </div>
                             `;
@@ -402,8 +401,7 @@ const app = {
                             </div>
                         </div>
                         <div class="section-header-actions">
-                            <button class="copy-btn" onclick="event.stopPropagation(); app.copyReportToClipboard('opportunities', this)" title="최적화 기회 복사하기">📋</button>
-                            <div class="collapse-toggle expanded">▼</div>
+                            <div class="collapse-toggle">▼</div>
                         </div>
                     </div>
                     <div class="section-content">
@@ -427,7 +425,6 @@ const app = {
                                                     ${group.priority.toUpperCase()}
                                                 </div>
                                                 <button class="action-btn" onclick="event.stopPropagation(); app.openNotionDatabase()" title="Notion으로 이동">↗</button>
-                                                <button class="copy-btn" onclick="event.stopPropagation(); app.copyToClipboard('${group.properties.join(', ')}', this)" title="속성명 복사">📋</button>
                                             </div>
                                         </div>
                                         <div class="opp-group-content">
@@ -443,7 +440,6 @@ const app = {
                                                             ${group.properties.map(prop => `
                                                                 <span class="property-tag" style="position: relative; display: inline-flex; align-items: center; gap: 4px;">
                                                                     ${this.escapeHtml(prop)}
-                                                                    <button class="copy-btn" style="width: 20px; height: 20px;" onclick="event.stopPropagation(); app.copyToClipboard('${this.escapeHtml(prop)}', this)" title="복사">📋</button>
                                                                 </span>
                                                             `).join('')}
                                                         </div>
@@ -458,7 +454,6 @@ const app = {
                                                             ${group.details.slice(0, 3).map(action => `
                                                                 <li style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
                                                                     <span>${this.escapeHtml(action)}</span>
-                                                                    <button class="copy-btn" style="width: 20px; height: 20px; flex-shrink: 0;" onclick="event.stopPropagation(); app.copyToClipboard('${this.escapeHtml(action)}', this)" title="복사">📋</button>
                                                                 </li>
                                                             `).join('')}
                                                             ${group.details.length > 3 ? `<li>+ ${group.details.length - 3}개 더</li>` : ''}
@@ -487,8 +482,7 @@ const app = {
                             </div>
                         </div>
                         <div class="section-header-actions">
-                            <button class="copy-btn" onclick="event.stopPropagation(); app.copyToClipboard('성능 분석 완료', this)" title="성능 분석 복사">📋</button>
-                            <div class="collapse-toggle expanded">▼</div>
+                            <div class="collapse-toggle">▼</div>
                         </div>
                     </div>
                     <div class="section-content">
@@ -508,8 +502,7 @@ const app = {
                             </div>
                         </div>
                         <div class="section-header-actions">
-                            <button class="copy-btn" onclick="event.stopPropagation(); app.copyToClipboard('컬럼 분석 완료', this)" title="컬럼 분석 복사">📋</button>
-                            <div class="collapse-toggle expanded">▼</div>
+                            <div class="collapse-toggle">▼</div>
                         </div>
                     </div>
                     <div class="section-content">
@@ -743,7 +736,13 @@ const app = {
     },
 
     initializeCollapsibleSections() {
-        // Progressive Disclosure: 상세 분석 섹션들을 기본으로 축소
+        // Progressive Disclosure: 모든 분석 섹션들을 기본으로 축소
+        const opportunitiesSection = document.querySelector('[data-section="opportunities"]');
+        if (opportunitiesSection) {
+            opportunitiesSection.classList.add('collapsed');
+            opportunitiesSection.querySelector('.collapse-toggle').classList.remove('expanded');
+        }
+        
         const performanceSection = document.querySelector('[data-section="performance"]');
         if (performanceSection) {
             performanceSection.classList.add('collapsed');
@@ -755,6 +754,15 @@ const app = {
             columnsSection.classList.add('collapsed');
             columnsSection.querySelector('.collapse-toggle').classList.remove('expanded');
         }
+
+        // 최적화 기회 그룹들도 모두 접혀있도록 설정
+        document.querySelectorAll('.opportunity-group').forEach(group => {
+            group.classList.add('collapsed');
+            const toggle = group.querySelector('.opp-group-toggle');
+            if (toggle) {
+                toggle.style.transform = 'rotate(0deg)';
+            }
+        });
     },
 
     groupOpportunitiesByTitle(opportunities) {
@@ -922,7 +930,6 @@ const app = {
                                     </div>
                                     <div class="item-actions">
                                         <button class="action-btn" onclick="app.openNotionDatabase()" title="Notion으로 이동">↗</button>
-                                        <button class="copy-btn" onclick="app.copyToClipboard('${this.escapeHtml(factor.recommendation)}', this)" title="복사">📋</button>
                                     </div>
                                 </div>
                             `;

@@ -118,7 +118,19 @@
 }
 
 .collapsible-section.collapsed .section-content {
-    display: none;
+    max-height: 0;
+    opacity: 0;
+    padding: 0;
+    visibility: hidden;
+    transition: max-height var(--transition-normal) ease, opacity var(--transition-normal) ease, padding var(--transition-normal) ease, visibility var(--transition-normal) ease;
+}
+
+.section-content {
+    padding: var(--spacing-md);
+    max-height: 2000px;
+    opacity: 1;
+    visibility: visible;
+    transition: max-height var(--transition-normal) ease, opacity var(--transition-normal) ease, padding var(--transition-normal) ease, visibility var(--transition-normal) ease;
 }
 
 .section-header {
@@ -185,33 +197,24 @@
     transition: all var(--transition-fast);
     font-size: 1.2rem;
     flex-shrink: 0;
+    transform: rotate(0deg);
 }
 
 .section-header:hover .collapse-toggle {
     background: var(--color-primary);
     color: white;
-    transform: scale(1.1);
+    transform: scale(1.1) rotate(0deg);
 }
 
 .collapse-toggle.expanded {
     transform: rotate(180deg);
 }
 
-.section-content {
-    padding: var(--spacing-md);
-    animation: slideDown var(--transition-normal) ease;
+.section-header:hover .collapse-toggle.expanded {
+    transform: scale(1.1) rotate(180deg);
 }
 
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
+
 
 /* ============ 분석 섹션 내부 간격 개선 ============ */
 .performance-section {
@@ -279,6 +282,10 @@
     border-bottom: none;
 }
 
+.opp-group-header:hover {
+    background: linear-gradient(135deg, rgba(230, 144, 70, 0.08) 0%, rgba(230, 144, 70, 0.03) 100%);
+}
+
 .opp-group-left {
     display: flex;
     align-items: center;
@@ -300,6 +307,14 @@
 }
 
 .opportunity-group.collapsed .opp-group-toggle {
+    transform: rotate(0deg);
+}
+
+.opp-group-header:hover .opp-group-toggle {
+    transform: rotate(90deg);
+}
+
+.opportunity-group.collapsed .opp-group-header:hover .opp-group-toggle {
     transform: rotate(0deg);
 }
 
@@ -332,12 +347,18 @@
 }
 
 .opp-group-content {
-    display: block;
-    animation: slideDown var(--transition-normal) ease;
+    max-height: 2000px;
+    opacity: 1;
+    visibility: visible;
+    overflow: hidden;
+    transition: max-height var(--transition-normal) ease, opacity var(--transition-normal) ease, visibility var(--transition-normal) ease;
 }
 
 .opportunity-group.collapsed .opp-group-content {
-    display: none;
+    max-height: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: max-height var(--transition-normal) ease, opacity var(--transition-normal) ease, visibility var(--transition-normal) ease;
 }
 
 .opp-group-details {
