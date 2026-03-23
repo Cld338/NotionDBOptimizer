@@ -321,6 +321,15 @@ const app = {
                                     <div class="progress-fill" style="width: ${qualityScore}%; background: linear-gradient(90deg, ${scoreColor}, ${scoreColor}dd)"></div>
                                 </div>
                             </div>
+                            <div class="progress-item">
+                                <div class="progress-header">
+                                    <span class="progress-label info-tooltip" data-tooltip="데이터베이스의 성능 및 최적화 상태">성능 점수</span>
+                                    <span class="progress-value">${performanceScore}%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${performanceScore}%; background: linear-gradient(90deg, ${performanceScore >= 80 ? this.colors.success : performanceScore >= 60 ? this.colors.warning : this.colors.error}, ${performanceScore >= 80 ? this.colors.success : performanceScore >= 60 ? this.colors.warning : this.colors.error}dd)"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -877,17 +886,6 @@ const app = {
         
         let html = `
             <div class="performance-section">
-                <!-- 성능 점수 -->
-                <div class="performance-score-box">
-                    <div class="perf-score-item">
-                        <div class="score-label">성능 점수</div>
-                        <div class="score-value" style="color: ${perfScoreColor}">${performanceScore}/100</div>
-                        <div class="score-bar">
-                            <div class="score-fill" style="width: ${performanceScore}%; background-color: ${perfScoreColor}"></div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- 성능 문제 분석 -->
                 ${issues.factors && issues.factors.length > 0 ? `
                 <div class="performance-factors-section">
