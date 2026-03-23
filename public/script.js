@@ -151,23 +151,37 @@ const app = {
 
     switchView(viewName) {
         document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
+        
+        // 데이터베이스 탭 UI 상태 업데이트
+        const databasesExpandIcon = document.getElementById('databasesExpandIcon');
+        const databasesTabs = document.getElementById('databasesTabs');
+        const databasesNavBtn = document.getElementById('databasesNavBtn');
+        
         if (viewName === 'databases') {
             document.getElementById('databasesView').style.display = 'block';
+            databasesNavBtn.classList.add('active');
+            databasesExpandIcon.style.display = 'none';
+            databasesTabs.style.display = 'none';
+        } else {
+            databasesNavBtn.classList.remove('active');
         }
     },
 
     async selectDatabase(databaseId, databaseTitle) {
         this.currentDatabaseId = databaseId;
         this.currentPage = 1;
-        this.currentTab = 'data';
 
         // UI 변경
         document.getElementById('databasesView').style.display = 'none';
         document.getElementById('databaseDetail').style.display = 'block';
         document.getElementById('databaseTitle').textContent = databaseTitle;
         
-        // 테이블 스켈레톤 표시
-        this.renderSkeletonTable();
+        // 사이드바 탭 UI 표시
+        document.getElementById('databasesExpandIcon').style.display = 'inline';
+        document.getElementById('databasesTabs').style.display = 'flex';
+        
+        // 분석 스켈레톤 표시
+        this.renderSkeletonAnalysis();
 
         try {
             // 데이터베이스 구조 로드
@@ -178,10 +192,9 @@ const app = {
             this.currentDatabaseProperties = dbData.properties;
 
             // 탭 초기화
-            this.switchTab('data');
+            this.switchTab('analysis');
 
-            // 레코드 로드
-            await this.loadDatabaseRecords();
+
         } catch (error) {
             console.error('데이터베이스 상세 로드 실패:', error);
             this.showError('데이터베이스를 불러올 수 없습니다.');
@@ -191,8 +204,8 @@ const app = {
     switchTab(tabName) {
         this.currentTab = tabName;
 
-        // 탭 버튼 업데이트
-        document.querySelectorAll('.tab-btn').forEach(btn => {
+        // 사이드바 탭 버튼 업데이트
+        document.querySelectorAll('.nav-sub-item').forEach(btn => {
             btn.classList.remove('active');
             if (btn.getAttribute('data-tab') === tabName) {
                 btn.classList.add('active');
@@ -204,32 +217,12 @@ const app = {
             tab.style.display = 'none';
         });
 
-        if (tabName === 'data') {
-            document.getElementById('dataTab').style.display = 'block';
-        } else if (tabName === 'analysis') {
+        if (tabName === 'analysis') {
             document.getElementById('analysisTab').style.display = 'block';
             this.loadAnalysis();
         } else if (tabName === 'network') {
             document.getElementById('networkTab').style.display = 'block';
             this.loadNetwork();
-        }
-    },
-
-    async loadDatabaseRecords() {
-        try {
-            const response = await fetch(`/api/database/${this.currentDatabaseId}/query`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ page_size: 10 })
-            });
-
-            if (!response.ok) throw new Error('레코드 로드 실패');
-
-            const data = await response.json();
-            this.renderRecordsTable(data.records);
-        } catch (error) {
-            console.error('레코드 로드 실패:', error);
-            this.showError('레코드를 불러올 수 없습니다.');
         }
     },
 
@@ -1048,41 +1041,9 @@ const app = {
         }
     },
 
-    renderRecordsTable(records) {
-        if (!this.currentDatabaseProperties) return;
-
-        const properties = Object.keys(this.currentDatabaseProperties);
-        const propertyNames = properties.map(key => this.currentDatabaseProperties[key].name || key);
-
-        let html = '<table><thead><tr>';
-        html += propertyNames.map(name => `<th>${this.escapeHtml(name)}</th>`).join('');
-        html += '</tr></thead><tbody>';
-
-        records.forEach(record => {
-            html += '<tr>';
-            properties.forEach(propKey => {
-                const value = record.properties[propKey];
-                const displayValue = this.formatDisplayValue(value);
-                html += `<td>${this.escapeHtml(displayValue)}</td>`;
-            });
-            html += '</tr>';
-        });
-
-        html += '</tbody></table>';
-        document.getElementById('tablePlaceholder').innerHTML = '<div class="table-wrapper">' + html + '</div>';
-    },
-
-    formatDisplayValue(value) {
-        if (value === null || value === undefined) return '-';
-        if (Array.isArray(value)) return value.join(', ');
-        if (typeof value === 'object') return JSON.stringify(value);
-        return String(value);
-    },
-
     goBackToDatabases() {
         this.currentDatabaseId = null;
-        document.getElementById('databasesView').style.display = 'block';
-        document.getElementById('databaseDetail').style.display = 'none';
+        this.switchView('databases');
         document.getElementById('tablePlaceholder').innerHTML = '<div class="card-content"><div class="loading-spinner"></div><p>테이블 로딩 중...</p></div>';
     },
 
