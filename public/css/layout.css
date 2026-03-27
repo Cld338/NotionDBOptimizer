@@ -179,10 +179,14 @@
 .main-content .view-section {
     max-width: 1100px;
     margin: 0 auto;
+    overflow: visible;
+    position: relative;
 }
 
 .view-section {
     animation: fadeIn var(--transition-normal);
+    overflow: visible;
+    position: relative;
 }
 
 @keyframes fadeIn {

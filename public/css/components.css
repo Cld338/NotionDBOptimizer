@@ -110,6 +110,8 @@ tr:hover td {
 .tab-content {
     display: none;
     animation: fadeIn var(--transition-normal);
+    overflow: visible;
+    position: relative;
 }
 
 .tab-content.active {
@@ -158,6 +160,8 @@ tr:hover td {
 
 .detail-title-section {
     margin-top: var(--spacing-md);
+    overflow: visible;
+    position: relative;
 }
 
 .detail-title {
@@ -173,12 +177,16 @@ tr:hover td {
     box-shadow: var(--shadow-sm);
     padding: var(--spacing-md);
     border-bottom: 2px solid var(--color-divider);
+    overflow: visible;
+    position: relative;
 }
 
 .tabs-container {
     display: flex;
     gap: var(--spacing-lg);
     border-bottom: 2px solid var(--color-divider);
+    overflow: visible;
+    position: relative;
 }
 
 .tab-btn {
@@ -195,6 +203,7 @@ tr:hover td {
     font-family: var(--font-body);
     transition: all var(--transition-normal);
     position: relative;
+    overflow: visible;
 }
 
 .tab-btn:hover {
@@ -217,6 +226,8 @@ tr:hover td {
 .tab-content {
     display: none;
     animation: fadeIn var(--transition-normal);
+    overflow: visible;
+    position: relative;
 }
 
 .tab-content.active {
@@ -228,9 +239,10 @@ tr:hover td {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    overflow: hidden;
+    overflow: visible;
     border: 1px solid rgba(230, 144, 70, 0.05);
     transition: all var(--transition-normal);
+    position: relative;
 }
 
 .card:hover {
@@ -242,6 +254,8 @@ tr:hover td {
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--color-divider);
     background: linear-gradient(135deg, var(--color-secondary) 0%, transparent 100%);
+    overflow: visible;
+    position: relative;
 }
 
 .card-header h3 {
@@ -252,6 +266,8 @@ tr:hover td {
 
 .card-content {
     padding: var(--spacing-lg);
+    overflow: visible;
+    position: relative;
 }
 
 /* ============ 테이블 상세 ============ */

@@ -21,6 +21,8 @@
     font-size: 1rem;
     transition: all var(--transition-fast);
     color: var(--color-text-light);
+    position: relative;
+    z-index: 10;
 }
 
 .action-btn:hover,
@@ -201,6 +203,7 @@
     align-items: center;
     gap: var(--spacing-xs);
     position: relative;
+    z-index: 10;
 }
 
 /* 경고/이슈 항목 - 액션 버튼 배치 */

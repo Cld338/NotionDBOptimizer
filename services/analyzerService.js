@@ -272,7 +272,7 @@ function evaluateOptimizationOpportunities(records, properties, propertyNames, c
                 property: stats.name || propKey,
                 title: '저활용도 속성',
                 current_fill_rate: stats.completeness,
-                description: `이 속성은 ${stats.completeness}%만 채워져 있습니다`,
+                description: `이 속성은 30% 보다 적게 사용되고 있습니다`,
                 benefit: '불필요한 속성을 제거하면 로딩 성능이 개선됩니다',
                 action: '이 속성이 정말 필요한지 확인 후 불필요하면 제거하세요'
             });
