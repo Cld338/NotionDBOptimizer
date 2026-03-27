@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: notion-api-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    environment:
+      - REDIS_PASSWORD=
+
+volumes:
+  redis_data:
+    driver: local
+
+# Usage:
+# - Start Redis: docker-compose up -d
+# - Stop Redis: docker-compose down
+# - View logs: docker-compose logs -f redis
+# - Connect to Redis CLI: docker exec -it notion-api-redis redis-cli

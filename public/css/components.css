@@ -169,6 +169,20 @@ tr:hover td {
     font-size: 2.2rem;
 }
 
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-lg);
+    gap: var(--spacing-lg);
+}
+
+.detail-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
 /* 상세 탭 */
 .tabs-wrapper {
     margin-bottom: var(--spacing-2xl);

@@ -8,6 +8,7 @@ const path = require('path');
 const authRoutes = require('./routes/auth');
 const notionRoutes = require('./routes/notion');
 const { checkAuth } = require('./middleware/auth');
+const { initializeRedis } = require('./services/cacheService');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -51,7 +52,18 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: '서버 에러가 발생했습니다.' });
 });
 
-app.listen(PORT, () => {
-    console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
-    console.log(`http://localhost:${PORT} 에서 접속하세요.`);
+// 서버 시작
+async function startServer() {
+    // Redis 초기화 (선택사항 - Redis 없이도 작동)
+    await initializeRedis();
+
+    app.listen(PORT, () => {
+        console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
+        console.log(`http://localhost:${PORT} 에서 접속하세요.`);
+    });
+}
+
+startServer().catch(err => {
+    console.error('서버 시작 중 오류:', err);
+    process.exit(1);
 });

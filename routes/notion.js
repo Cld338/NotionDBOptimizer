@@ -21,6 +21,7 @@ const { analyzeDatabase } = require('../services/analyzerService');
 const { buildReferenceChains } = require('../services/chainAnalyzer');
 const { extractFieldReferencesFromFormula } = require('../utils/formulaParser');
 const { getNotionHeaders, searchDatabases, getDatabaseStructure } = require('../utils/notionApi');
+const { getCachedData, setCachedData, deleteCachedData } = require('../services/cacheService');
 
 // ===========================
 // 1. 데이터베이스 조회
@@ -33,7 +34,22 @@ const { getNotionHeaders, searchDatabases, getDatabaseStructure } = require('../
 router.get('/databases', async (req, res) => {
     try {
         const accessToken = req.session.user.accessToken;
+        
+        // 사용자별 캐시 키 생성 (accessToken의 처음 20자로 간단하게)
+        const userKey = accessToken.substring(0, 20);
+        const cacheKey = `databases:${userKey}`;
+        
+        // 캐시 확인
+        const cachedDatabases = await getCachedData(cacheKey);
+        if (cachedDatabases) {
+            return res.json({ databases: cachedDatabases });
+        }
+        
         const databases = await getAllDatabases(accessToken);
+        
+        // 캐시에 저장 (30분)
+        await setCachedData(cacheKey, databases, 1800);
+        
         res.json({ databases });
     } catch (error) {
         console.error('데이터베이스 조회 에러:', error.message);
@@ -42,18 +58,82 @@ router.get('/databases', async (req, res) => {
 });
 
 /**
- * GET /api/notion/database/:databaseId
+ * POST /api/databases/refresh
+ * DB 목록 캐시 초기화 및 재생성
+ */
+router.post('/databases/refresh', async (req, res) => {
+    try {
+        const accessToken = req.session.user.accessToken;
+        const userKey = accessToken.substring(0, 20);
+        const cacheKey = `databases:${userKey}`;
+        
+        // 캐시 삭제
+        await deleteCachedData(cacheKey);
+        
+        // 새로운 데이터 조회
+        const databases = await getAllDatabases(accessToken);
+        
+        // 캐시에 저장 (30분)
+        await setCachedData(cacheKey, databases, 1800);
+        
+        res.json({ success: true, databases });
+    } catch (error) {
+        console.error('DB 목록 캐시 새로 고침 에러:', error.message);
+        res.status(500).json({ error: 'DB 목록 캐시 새로 고침 실패' });
+    }
+});
+
+/**
+ * GET /api/database/:databaseId
  * 특정 데이터베이스의 구조 조회
  */
 router.get('/database/:databaseId', async (req, res) => {
     try {
         const { databaseId } = req.params;
         const accessToken = req.session.user.accessToken;
+        
+        // 캐시 확인
+        const cacheKey = `database-structure:${databaseId}`;
+        const cachedDatabase = await getCachedData(cacheKey);
+        if (cachedDatabase) {
+            return res.json(cachedDatabase);
+        }
+        
         const database = await getDatabaseInfo(databaseId, accessToken);
+        
+        // 캐시에 저장 (30분)
+        await setCachedData(cacheKey, database, 1800);
+        
         res.json(database);
     } catch (error) {
         console.error('데이터베이스 구조 조회 에러:', error.message);
         res.status(500).json({ error: '데이터베이스 구조 조회 실패' });
+    }
+});
+
+/**
+ * POST /api/database/:databaseId/refresh
+ * DB 구조 캐시 초기화 및 재생성
+ */
+router.post('/database/:databaseId/refresh', async (req, res) => {
+    try {
+        const { databaseId } = req.params;
+        const accessToken = req.session.user.accessToken;
+        const cacheKey = `database-structure:${databaseId}`;
+        
+        // 캐시 삭제
+        await deleteCachedData(cacheKey);
+        
+        // 새로운 데이터 조회
+        const database = await getDatabaseInfo(databaseId, accessToken);
+        
+        // 캐시에 저장 (30분)
+        await setCachedData(cacheKey, database, 1800);
+        
+        res.json({ success: true, database });
+    } catch (error) {
+        console.error('DB 구조 캐시 새로 고침 에러:', error.message);
+        res.status(500).json({ error: 'DB 구조 캐시 새로 고침 실패' });
     }
 });
 
@@ -105,6 +185,13 @@ router.get('/analyze/:databaseId', async (req, res) => {
         const { databaseId } = req.params;
         const accessToken = req.session.user.accessToken;
 
+        // 캐시 확인
+        const cacheKey = `analysis:${databaseId}`;
+        const cachedAnalysis = await getCachedData(cacheKey);
+        if (cachedAnalysis) {
+            return res.json(cachedAnalysis);
+        }
+
         // 데이터베이스 구조 조회
         const dbResponse = await getDatabaseStructure(databaseId, accessToken);
         const properties = dbResponse.properties;
@@ -116,10 +203,46 @@ router.get('/analyze/:databaseId', async (req, res) => {
         // 분석 실행
         const analysis = analyzeDatabase(records, properties, propertyNames);
 
+        // 캐시에 저장 (10분)
+        await setCachedData(cacheKey, analysis, 600);
+
         res.json(analysis);
     } catch (error) {
         console.error('데이터베이스 분석 에러:', error.message);
         res.status(500).json({ error: '데이터베이스 분석 실패' });
+    }
+});
+
+/**
+ * POST /api/analyze/:databaseId/refresh
+ * 분석 캐시 초기화 및 재생성
+ */
+router.post('/analyze/:databaseId/refresh', async (req, res) => {
+    try {
+        const { databaseId } = req.params;
+        const accessToken = req.session.user.accessToken;
+
+        const cacheKey = `analysis:${databaseId}`;
+        await deleteCachedData(cacheKey);
+
+        // 데이터베이스 구조 조회
+        const dbResponse = await getDatabaseStructure(databaseId, accessToken);
+        const properties = dbResponse.properties;
+        const propertyNames = Object.keys(properties);
+
+        // 모든 레코드 조회
+        const records = await getAllDatabaseRecords(databaseId, accessToken);
+
+        // 분석 실행
+        const analysis = analyzeDatabase(records, properties, propertyNames);
+
+        // 캐시에 저장 (10분)
+        await setCachedData(cacheKey, analysis, 600);
+
+        res.json({ success: true, data: analysis });
+    } catch (error) {
+        console.error('분석 캐시 새로 고침 에러:', error.message);
+        res.status(500).json({ error: '분석 캐시 새로 고침 실패' });
     }
 });
 
@@ -139,6 +262,13 @@ router.get('/network/:databaseId', async (req, res) => {
         const debugMode = debug === 'true' || debug === '1';
         const accessToken = req.session.user.accessToken;
 
+        // 캐시 확인
+        const cacheKey = `network:${databaseId}`;
+        const cachedNetwork = await getCachedData(cacheKey);
+        if (cachedNetwork) {
+            return res.json(cachedNetwork);
+        }
+
         if (debugMode) {
             console.log(`\n${'='.repeat(70)}`);
             console.log('🔗 DB Reference Chain Analysis Started');
@@ -157,16 +287,130 @@ router.get('/network/:databaseId', async (req, res) => {
             console.log(`${'='.repeat(70)}\n`);
         }
 
-        res.json({
+        const networkData = {
             nodes: result.nodes,
             edges: result.edges,
             centerDatabaseId: databaseId,
             propertiesInfo: Object.fromEntries(result.dbPropertiesMap),
             referenceChains: referenceChains
-        });
+        };
+
+        // 캐시에 저장 (10분)
+        await setCachedData(cacheKey, networkData, 600);
+
+        res.json(networkData);
     } catch (error) {
         console.error('DB 네트워크 분석 에러:', error.message);
         res.status(500).json({ error: 'DB 네트워크 분석 실패' });
+    }
+});
+
+/**
+ * POST /api/network/:databaseId/refresh
+ * 네트워크 캐시 초기화 및 재생성
+ */
+router.post('/network/:databaseId/refresh', async (req, res) => {
+    try {
+        const { databaseId } = req.params;
+        const accessToken = req.session.user.accessToken;
+
+        const cacheKey = `network:${databaseId}`;
+        await deleteCachedData(cacheKey);
+
+        // 단계 1: 모든 데이터베이스 조회 및 맵 구성
+        const result = await _buildDatabaseNetwork(databaseId, accessToken, false);
+
+        // 단계 2: 참조 체인 분석
+        const referenceChains = _analyzeReferenceChains(result.dbPropertiesMap, false);
+
+        const networkData = {
+            nodes: result.nodes,
+            edges: result.edges,
+            centerDatabaseId: databaseId,
+            propertiesInfo: Object.fromEntries(result.dbPropertiesMap),
+            referenceChains: referenceChains
+        };
+
+        // 캐시에 저장 (10분)
+        await setCachedData(cacheKey, networkData, 600);
+
+        res.json({ success: true, data: networkData });
+    } catch (error) {
+        console.error('네트워크 캐시 새로 고침 에러:', error.message);
+        res.status(500).json({ error: '네트워크 캐시 새로 고침 실패' });
+    }
+});
+
+/**
+ * POST /api/prefetch/:databaseId
+ * 백그라운드에서 네트워크 및 분석 데이터 미리 가져오기
+ * 반응 즉시 반환, 실패해도 무시 (사용자 경험 향상)
+ */
+router.post('/prefetch/:databaseId', async (req, res) => {
+    try {
+        const { databaseId } = req.params;
+        const { types = 'network,analysis' } = req.query;
+        const accessToken = req.session.user.accessToken;
+
+        // 즉시 응답
+        res.json({ success: true, message: 'Prefetch started in background' });
+
+        // 백그라운드 처리 (응답 완료 후)
+        setImmediate(async () => {
+            try {
+                const typeArray = types.split(',').map(t => t.trim());
+
+                // 네트워크 데이터 프리페치
+                if (typeArray.includes('network')) {
+                    const networkCacheKey = `network:${databaseId}`;
+                    const existingNetworkCache = await getCachedData(networkCacheKey);
+                    
+                    if (!existingNetworkCache) {
+                        try {
+                            const result = await _buildDatabaseNetwork(databaseId, accessToken, false);
+                            const referenceChains = _analyzeReferenceChains(result.dbPropertiesMap, false);
+                            const networkData = {
+                                nodes: result.nodes,
+                                edges: result.edges,
+                                centerDatabaseId: databaseId,
+                                propertiesInfo: Object.fromEntries(result.dbPropertiesMap),
+                                referenceChains: referenceChains
+                            };
+                            await setCachedData(networkCacheKey, networkData, 600);
+                            console.log(`[Prefetch] Network data cached for DB: ${databaseId}`);
+                        } catch (err) {
+                            console.warn(`[Prefetch] Failed to prefetch network data for DB ${databaseId}:`, err.message);
+                        }
+                    }
+                }
+
+                // 분석 데이터 프리페치
+                if (typeArray.includes('analysis')) {
+                    const analysisCacheKey = `analysis:${databaseId}`;
+                    const existingAnalysisCache = await getCachedData(analysisCacheKey);
+                    
+                    if (!existingAnalysisCache) {
+                        try {
+                            const dbResponse = await getDatabaseStructure(databaseId, accessToken);
+                            const properties = dbResponse.properties;
+                            const propertyNames = Object.keys(properties);
+                            const records = await getAllDatabaseRecords(databaseId, accessToken);
+                            const analysis = analyzeDatabase(records, properties, propertyNames);
+                            await setCachedData(analysisCacheKey, analysis, 600);
+                            console.log(`[Prefetch] Analysis data cached for DB: ${databaseId}`);
+                        } catch (err) {
+                            console.warn(`[Prefetch] Failed to prefetch analysis data for DB ${databaseId}:`, err.message);
+                        }
+                    }
+                }
+            } catch (err) {
+                console.warn('[Prefetch] Background prefetch error:', err.message);
+                // 백그라운드 작업 실패는 무시
+            }
+        });
+    } catch (error) {
+        console.error('프리페치 초기화 에러:', error.message);
+        res.status(500).json({ error: '프리페치 초기화 실패' });
     }
 });
 

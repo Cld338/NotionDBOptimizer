@@ -191,6 +191,9 @@ const app = {
             const dbData = await dbResponse.json();
             this.currentDatabaseProperties = dbData.properties;
 
+            // 백그라운드에서 네트워크 및 분석 데이터 프리페치
+            this.prefetchData(databaseId);
+
             // 탭 초기화
             this.switchTab('analysis');
 
@@ -198,6 +201,90 @@ const app = {
         } catch (error) {
             console.error('데이터베이스 상세 로드 실패:', error);
             this.showError('데이터베이스를 불러올 수 없습니다.');
+        }
+    },
+
+    async prefetchData(databaseId) {
+        try {
+            const response = await fetch(`/api/prefetch/${databaseId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            });
+            if (response.ok) {
+                console.log(`[Prefetch] Started for DB: ${databaseId}`);
+            }
+        } catch (error) {
+            console.warn('[Prefetch] Error starting prefetch:', error.message);
+            // 프리페치 실패는 무시 (사용자에게 영향 없음)
+        }
+    },
+
+    refreshCurrentTab() {
+        if (this.currentTab === 'network') {
+            this.refreshNetwork();
+        } else if (this.currentTab === 'analysis') {
+            this.refreshAnalysis();
+        }
+    },
+
+    async refreshNetwork() {
+        try {
+            const response = await fetch(`/api/network/${this.currentDatabaseId}/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) throw new Error('네트워크 새로고침 실패');
+
+            const result = await response.json();
+            this.renderNetwork(result.data);
+            this.showSuccess('네트워크가 새로 고쳐졌습니다.');
+        } catch (error) {
+            console.error('네트워크 새로고침 실패:', error);
+            this.showError('네트워크 새로고침에 실패했습니다.');
+        }
+    },
+
+    async refreshAnalysis() {
+        try {
+            const response = await fetch(`/api/analyze/${this.currentDatabaseId}/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) throw new Error('분석 새로고침 실패');
+
+            const result = await response.json();
+            this.renderAnalysis(result.data);
+            this.showSuccess('분석이 새로 고쳐졌습니다.');
+        } catch (error) {
+            console.error('분석 새로고침 실패:', error);
+            this.showError('분석 새로고침에 실패했습니다.');
+        }
+    },
+
+    async refreshDatabases() {
+        try {
+            const btn = document.getElementById('refreshDatabasesBtn');
+            if (btn) btn.disabled = true;
+
+            const response = await fetch('/api/databases/refresh', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            if (!response.ok) throw new Error('DB 목록 새로고침 실패');
+
+            const result = await response.json();
+            this.allDatabases = result.databases;
+            this.filteredDatabases = [...this.allDatabases];
+            this.databaseCurrentPage = 1;
+            this.updateDatabasesDisplay();
+            this.showSuccess('DB 목록이 새로 고쳐졌습니다.');
+        } catch (error) {
+            console.error('DB 목록 새로고침 실패:', error);
+            this.showError('DB 목록 새로고침에 실패했습니다.');
+        } finally {
+            const btn = document.getElementById('refreshDatabasesBtn');
+            if (btn) btn.disabled = false;
         }
     },
 
