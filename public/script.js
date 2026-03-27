@@ -1141,18 +1141,32 @@ const app = {
         } catch (error) {
             console.error('네트워크 로드 실패:', error);
             this.showError('네트워크를 불러올 수 없습니다.');
-            document.getElementById('networkContainer').innerHTML = '<div style="color: var(--color-error);">네트워크를 불러올 수 없습니다.</div>';
+            document.getElementById('networkTab').innerHTML = '<div class="card"><div class="card-content" style="color: var(--color-error);">네트워크를 불러올 수 없습니다.</div></div>';
         }
     },
 
     renderNetwork(data) {
-        // 속성 정보 저장 (showRelationsList에서 사용)
-        this.currentNetworkData = data;
+        try {
+            // 속성 정보 저장 (showRelationsList에서 사용)
+            this.currentNetworkData = data;
 
-        // 속성 정보 표 표시 (지연 렌더링)
-        setTimeout(() => {
-            this.renderPropertiesTable(data);
-        }, 100);
+            // 스켈레톤 제거 및 실제 콘텐츠로 교체
+            const tabContent = document.getElementById('networkTab');
+            tabContent.innerHTML = '';
+
+            // 속성 정보 표 표시 (지연 렌더링)
+            setTimeout(() => {
+                try {
+                    this.renderPropertiesTable(data);
+                } catch (error) {
+                    console.error('Properties table rendering error:', error);
+                    document.getElementById('networkTab').innerHTML = '<div class="card"><div class="card-content" style="color: var(--color-error);">테이블 렌더링 중 오류가 발생했습니다: ' + error.message + '</div></div>';
+                }
+            }, 100);
+        } catch (error) {
+            console.error('Network rendering error:', error);
+            document.getElementById('networkTab').innerHTML = '<div class="card"><div class="card-content" style="color: var(--color-error);">네트워크 렌더링 중 오류가 발생했습니다.</div></div>';
+        }
     },
 
     showDatabaseProperties(databaseId, data) {
@@ -1251,6 +1265,14 @@ const app = {
 
     renderPropertiesTable(data) {
         const tabContent = document.getElementById('networkTab');
+        
+        // 데이터 검증
+        if (!data || !data.propertiesInfo) {
+            console.error('Invalid network data structure:', data);
+            tabContent.innerHTML = '<div class="card"><div class="card-content" style="color: var(--color-error);">네트워크 데이터가 유효하지 않습니다.</div></div>';
+            return;
+        }
+
         let propertiesSection = tabContent.querySelector('.properties-info-section');
         
         if (!propertiesSection) {
@@ -1260,7 +1282,7 @@ const app = {
         }
 
         const referencingDbs = Object.entries(data.propertiesInfo)
-            .filter(([_, dbInfo]) => dbInfo.properties.length > 0);
+            .filter(([_, dbInfo]) => dbInfo && dbInfo.properties && dbInfo.properties.length > 0);
 
         let html = '';
 
@@ -1361,7 +1383,7 @@ const app = {
             html += `
             <div class="card mb-lg">
                 <div class="card-header">
-                    <h3>🌳 다단계 참조 트리 분석</h3>
+                    <h3>🌳 참조 경로 분석</h3>
                 </div>
                 <div class="card-content">
             `;
@@ -1413,7 +1435,7 @@ const app = {
             <div class="card mb-lg">
                 <div class="card-content text-center text-muted p-lg">
                     <span style="font-size: 2rem; display: block; margin-bottom: var(--spacing-sm);">🌳</span>
-                    다단계로 깊게 연결된 참조 트리 흐름이 없습니다. (현재 쾌적한 상태입니다)
+                    깊게 연결된 참조가 없습니다. (현재 쾌적한 상태입니다)
                 </div>
             </div>
             `;
@@ -1667,7 +1689,75 @@ const app = {
      * 네트워크 탭 스켈레톤 렌더링
      */
     renderSkeletonNetwork() {
-        // networkContainer가 제거되었으므로 아무 작업 없음
+        const tabContent = document.getElementById('networkTab');
+        
+        let html = `
+            <div class="skeleton-network">
+                <!-- 데이터 참조 관계 테이블 스켈레톤 -->
+                <div class="skeleton-network-table">
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <div class="skeleton-text lg skeleton" style="width: 40%;"></div>
+                    </div>
+                    <div class="skeleton-network-table-header">
+                        <div class="skeleton-text skeleton"></div>
+                        <div class="skeleton-text skeleton"></div>
+                        <div class="skeleton-text skeleton"></div>
+                        <div class="skeleton-text skeleton"></div>
+                    </div>
+                    
+                    ${Array.from({length: 4}, () => `
+                    <div class="skeleton-network-table-row">
+                        <div class="skeleton-text skeleton"></div>
+                        <div class="skeleton-text skeleton"></div>
+                        <div class="skeleton-text skeleton"></div>
+                        <div class="skeleton-text skeleton"></div>
+                    </div>
+                    `).join('')}
+                </div>
+
+                <!-- 참조 경로 분석 스켈레톤 -->
+                <div class="skeleton-network-reference-chain">
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <div class="skeleton-text lg skeleton" style="width: 40%;"></div>
+                    </div>
+
+                    <!-- 섹션 1 -->
+                    <div class="skeleton-network-reference-section">
+                        <div class="skeleton-network-reference-section-title skeleton"></div>
+                        
+                        ${Array.from({length: 3}, () => `
+                        <div class="skeleton-reference-chain-item">
+                            <div class="skeleton-reference-chain-item-row">
+                                <div class="skeleton-text skeleton"></div>
+                            </div>
+                            <div class="skeleton-reference-chain-item-row">
+                                <div style="flex: 1;"><div class="skeleton-text skeleton"></div></div>
+                            </div>
+                        </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- 섹션 2 -->
+                    <div class="skeleton-network-reference-section">
+                        <div class="skeleton-network-reference-section-title skeleton"></div>
+                        
+                        ${Array.from({length: 3}, () => `
+                        <div class="skeleton-reference-chain-item">
+                            <div class="skeleton-reference-chain-item-row">
+                                <div class="skeleton-text skeleton"></div>
+                            </div>
+                            <div class="skeleton-reference-chain-item-row">
+                                <div style="flex: 1;"><div class="skeleton-text skeleton"></div></div>
+                            </div>
+                        </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // networkTab의 기존 내용을 스켈레톤으로 교체
+        tabContent.innerHTML = html;
     }
 };
 

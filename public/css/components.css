@@ -71,53 +71,6 @@ tr:hover td {
     background: var(--color-secondary);
 }
 
-/* ============ 탭 ============ */
-.tabs-wrapper {
-    margin-bottom: var(--spacing-xl);
-    border-bottom: 1px solid var(--color-border);
-}
-
-.tabs-container {
-    display: flex;
-    gap: var(--spacing-lg);
-}
-
-.tab-btn {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 16px 4px;
-    background: transparent;
-    border: none;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    color: var(--color-neutral);
-    font-family: var(--font-body);
-    font-size: 1.05rem;
-    transition: all var(--transition-fast);
-}
-
-.tab-btn:hover {
-    color: var(--color-accent);
-}
-
-.tab-btn.active {
-    color: var(--color-primary);
-    border-bottom-color: var(--color-primary);
-    font-weight: 500;
-}
-
-.tab-content {
-    display: none;
-    animation: fadeIn var(--transition-normal);
-    overflow: visible;
-    position: relative;
-}
-
-.tab-content.active {
-    display: block;
-}
-
 /* ============ 스크롤바 ============ */
 ::-webkit-scrollbar {
     width: 8px;
@@ -183,60 +136,7 @@ tr:hover td {
     align-items: center;
 }
 
-/* 상세 탭 */
-.tabs-wrapper {
-    margin-bottom: var(--spacing-2xl);
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    padding: var(--spacing-md);
-    border-bottom: 2px solid var(--color-divider);
-    overflow: visible;
-    position: relative;
-}
-
-.tabs-container {
-    display: flex;
-    gap: var(--spacing-lg);
-    border-bottom: 2px solid var(--color-divider);
-    overflow: visible;
-    position: relative;
-}
-
-.tab-btn {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: var(--spacing-md) var(--spacing-lg);
-    background: transparent;
-    border: none;
-    border-bottom: 3px solid transparent;
-    cursor: pointer;
-    color: var(--color-text-light);
-    font-weight: 500;
-    font-family: var(--font-body);
-    transition: all var(--transition-normal);
-    position: relative;
-    overflow: visible;
-}
-
-.tab-btn:hover {
-    color: var(--color-primary);
-}
-
-.tab-btn.active {
-    color: var(--color-primary);
-    border-bottom-color: var(--color-primary);
-}
-
-.tab-icon {
-    font-size: 1.2rem;
-}
-
-.tab-label {
-    font-weight: 600;
-}
-
+/* 탭 콘텐츠 */
 .tab-content {
     display: none;
     animation: fadeIn var(--transition-normal);
