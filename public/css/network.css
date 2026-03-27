@@ -147,3 +147,137 @@
     padding: var(--spacing-xs) var(--spacing-sm);
     border-bottom: 1px solid var(--color-divider);
 }
+
+/* ============ 인덴트 트리 스타일 ============ */
+
+.indented-tree-root {
+    margin: 0;
+}
+
+.tree-root-item {
+    background: var(--color-surface);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    box-shadow: var(--shadow-xs);
+}
+
+.tree-root-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    font-weight: 600;
+    color: var(--color-text-dark);
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--transition-fast);
+}
+
+.tree-root-header:hover {
+    color: var(--color-primary);
+}
+
+.tree-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    flex-shrink: 0;
+    transition: transform var(--transition-fast);
+    color: var(--color-text-muted);
+}
+
+.tree-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+.tree-node-container {
+    border-left: 2px solid var(--color-divider);
+    padding-left: var(--spacing-md);
+    margin-left: var(--spacing-md);
+    margin-top: var(--spacing-xs);
+}
+
+.tree-node-item {
+    position: relative;
+    margin-bottom: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    transition: background-color var(--transition-fast);
+}
+
+.tree-node-item:hover {
+    background-color: var(--color-bg);
+}
+
+.tree-node-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: 0.9rem;
+    color: var(--color-text-light);
+}
+
+.tree-node-db {
+    font-weight: 600;
+    color: var(--color-text-dark);
+    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), transparent);
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.tree-node-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 6px;
+    background: rgba(52, 152, 219, 0.1);
+    border-radius: 3px;
+    font-family: 'Monaco', 'Menlo', monospace;
+    font-size: 0.85rem;
+}
+
+.tree-node-type {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    padding: 2px 6px;
+    background: var(--color-bg);
+    border-radius: 3px;
+    margin-left: var(--spacing-xs);
+}
+
+.tree-node-type.rollup {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), transparent);
+    color: #10b981;
+}
+
+.tree-node-type.formula {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), transparent);
+    color: #a855f7;
+}
+
+.tree-node-reference {
+    margin-top: var(--spacing-xs);
+    padding-left: var(--spacing-md);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.tree-node-reference::before {
+    content: '↳';
+    color: var(--color-divider);
+    margin-right: 4px;
+}
+
+.tree-children-container {
+    margin-left: var(--spacing-sm);
+    border-left: 1px solid var(--color-divider);
+    padding-left: var(--spacing-md);
+}

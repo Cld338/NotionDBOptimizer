@@ -1354,79 +1354,55 @@ const app = {
             }
         }
 
-        // 2. 참조 트리 분석 (다단계 참조 흐름) - 페이지네이션 추가
+        // 2. 참조 트리 분석 (다단계 참조 흐름) - 인덴트 트리로 렌더링
         if (data.referenceChains && data.referenceChains.length > 0) {
-            const itemsPerPage = 10;
-            const allPaths = [];
-            data.referenceChains.forEach(treeItem => {
-                if (treeItem.tree) {
-                    const paths = this._extractPathsFromTree(treeItem.tree);
-                    paths.forEach(path => {
-                        allPaths.push({
-                            sourceDb: treeItem.sourceDb,
-                            sourceField: treeItem.sourceField,
-                            sourceType: treeItem.sourceType,
-                            path: path,
-                            pathLength: path.length
-                        });
-                    });
-                }
-            });
-
-            const pathsByLength = {};
-            allPaths.forEach(item => {
-                const len = item.pathLength;
-                if (!pathsByLength[len]) pathsByLength[len] = [];
-                pathsByLength[len].push(item);
-            });
-
             html += `
             <div class="card mb-lg">
                 <div class="card-header">
-                    <h3>🌳 참조 경로 분석</h3>
+                    <h3>🌳 참조 경로 분석 (인덴트 트리 뷰)</h3>
                 </div>
                 <div class="card-content">
+                    <div class="indented-tree-root">
             `;
 
-            Object.keys(pathsByLength)
-                .sort((a, b) => b - a)
-                .forEach(length => {
-                    const pathsOfLength = pathsByLength[length];
-                    const sectionId = `reference-chain-${length}`;
-                    const displayItemsCount = Math.min(itemsPerPage, pathsOfLength.length);
-                    const hasMore = pathsOfLength.length > itemsPerPage;
-                    
-                    html += `
+            // Root DB별로 그룹화
+            const treesByDb = {};
+            data.referenceChains.forEach(chainItem => {
+                const dbKey = chainItem.sourceDb;
+                if (!treesByDb[dbKey]) {
+                    treesByDb[dbKey] = [];
+                }
+                treesByDb[dbKey].push(chainItem);
+            });
+
+            // Root DB별로 인덴트 트리 렌더링
+            Object.keys(treesByDb).sort().forEach(dbName => {
+                const chains = treesByDb[dbName];
+                
+                html += `
                     <div class="mb-lg">
-                        <h4 class="mb-sm text-primary">📍 ${length}단계 연속 참조 <span class="text-muted text-sm">(${pathsOfLength.length}개)</span></h4>
-                        <div class="opportunities-list" id="${sectionId}">
-                    `;
+                        <h5 class="mb-md text-primary" style="font-weight: 600; font-size: 1rem;">
+                            📁 <strong>${this.escapeHtml(dbName)}</strong>
+                            <span class="text-muted" style="font-size: 0.85rem; font-weight: 400;">(${chains.length}개 참조 필드)</span>
+                        </h5>
+                `;
 
-                    // 처음 itemsPerPage개만 표시
-                    for (let i = 0; i < displayItemsCount; i++) {
-                        const item = pathsOfLength[i];
-                        html += this._renderReferenceChainItem(item);
-                    }
-
-                    html += `
-                        </div>
-                        ${hasMore ? `
-                        <div style="text-align: center; margin-top: var(--spacing-md);">
-                            <button class="btn-secondary" onclick="app.loadMoreReferenceChains('${sectionId}', ${length}, ${itemsPerPage})">
-                                더 보기 (${pathsOfLength.length - displayItemsCount}개 항목)
-                            </button>
-                        </div>
-                        ` : ''}
-                    </div>
-                    `;
-                    
-                    // 나머지 데이터를 data 속성에 저장
-                    if (hasMore) {
-                        html += `<script data-section-id="${sectionId}" data-paths="${this.escapeHtml(JSON.stringify(pathsOfLength))}" type="application/json"></script>`;
-                    }
+                chains.forEach((chainItem, chainIdx) => {
+                    html += this._renderReferenceChainAsIndentedTree(
+                        chainItem.sourceDb,
+                        chainItem.sourceField,
+                        chainItem.sourceType,
+                        chainItem.tree
+                    );
                 });
 
+                html += `
+                    </div>
+                `;
+            });
+
             html += `
+                    </div>
                 </div>
             </div>
             `;
@@ -1442,86 +1418,6 @@ const app = {
         }
 
         propertiesSection.innerHTML = html;
-    },
-
-    _renderReferenceChainItem(item) {
-        let html = `
-            <div class="opportunity-item mb-sm bg-secondary" style="border-left-color: var(--color-warning);">
-                <div class="opp-header mb-xs">
-                    <div class="opp-title">
-                        <strong>${this.escapeHtml(item.sourceDb)}</strong>의 <span class="property-tag">${this.escapeHtml(item.sourceField)}</span> 필드 시작
-                    </div>
-                    <span class="opp-priority text-muted">${item.sourceType}</span>
-                </div>
-                <div class="opp-content">
-                    <div style="display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-xs);">
-        `;
-
-        item.path.forEach((node, nodeIdx) => {
-            const isRollup = node.fieldType === 'rollup';
-            const stepIcon = isRollup ? '🔄' : '🧮';
-            const refDbName = node.referencedPropertyDb || 'Unknown';
-            
-            if (nodeIdx > 0) {
-                html += `<span style="color: var(--color-primary-deep); font-weight: bold;">→</span>`;
-            }
-            
-            html += `
-                        <div style="background: var(--color-surface); border: 1px solid var(--color-divider); border-radius: var(--radius-sm); padding: var(--spacing-xs) var(--spacing-sm); font-size: 0.85rem; box-shadow: var(--shadow-xs);">
-                            ${stepIcon} <strong>[${this.escapeHtml(node.db)}]</strong> ${this.escapeHtml(node.fieldName)}
-            `;
-            
-            if (node.referencedProperty) {
-                html += ` <span style="color: var(--color-neutral);">↳</span> <strong>[${this.escapeHtml(refDbName)}]</strong> ${this.escapeHtml(node.referencedProperty)}`;
-            }
-            if (node.aggregationFunction) {
-                html += ` <span class="text-muted">(${this.escapeHtml(node.aggregationFunction)})</span>`;
-            }
-            
-            html += `</div>`;
-        });
-
-        html += `
-                    </div>
-                </div>
-            </div>
-        `;
-        return html;
-    },
-
-    loadMoreReferenceChains(sectionId, chainLength, itemsPerPage) {
-        const section = document.getElementById(sectionId);
-        if (!section) return;
-
-        const script = document.querySelector(`script[data-section-id="${sectionId}"]`);
-        if (!script) return;
-
-        try {
-            const pathsOfLength = JSON.parse(script.getAttribute('data-paths'));
-            const currentCount = section.querySelectorAll('.opportunity-item').length;
-            const startIdx = currentCount;
-            const endIdx = Math.min(startIdx + itemsPerPage, pathsOfLength.length);
-
-            // 더 많은 항목 렌더링
-            let newHtml = '';
-            for (let i = startIdx; i < endIdx; i++) {
-                newHtml += this._renderReferenceChainItem(pathsOfLength[i]);
-            }
-
-            // "더 보기" 버튼 영역 찾기 및 업데이트
-            const button = section.parentElement.querySelector('.btn-secondary');
-            if (button) {
-                section.innerHTML += newHtml;
-                const remainingCount = pathsOfLength.length - endIdx;
-                if (remainingCount > 0) {
-                    button.textContent = `더 보기 (${remainingCount}개 항목)`;
-                } else {
-                    button.style.display = 'none';
-                }
-            }
-        } catch (e) {
-            console.error('더 보기 로드 실패:', e);
-        }
     },
 
     /**
@@ -1546,6 +1442,84 @@ const app = {
         }
 
         return paths;
+    },
+
+    /**
+     * 참조 트리를 인덴트 트리 HTML로 렌더링
+     */
+    _renderReferenceChainAsIndentedTree(sourceDb, sourceField, sourceType, treeRoot) {
+        let html = `
+            <div class="tree-root-item">
+                <div class="tree-root-header">
+                    <span class="tree-toggle" title="펼치기/접기">▼</span>
+                    <span class="tree-root-icon" style="font-size: 1.1rem; margin-right: 4px;">${sourceType === 'rollup' ? '🔄' : '🧮'}</span>
+                    <span class="tree-root-db" style="font-weight: 600;">[${this.escapeHtml(sourceDb)}]</span>
+                    <span class="tree-root-field" style="font-family: 'Monaco', 'Menlo', monospace; background: rgba(52, 152, 219, 0.1); padding: 2px 6px; border-radius: 3px; font-size: 0.9rem;">${this.escapeHtml(sourceField)}</span>
+                    <span class="tree-root-type" style="font-size: 0.75rem; color: #666; margin-left: auto;">${sourceType.toUpperCase()}</span>
+                </div>
+                <div class="tree-node-container">
+        `;
+
+        if (treeRoot.children && treeRoot.children.length > 0) {
+            treeRoot.children.forEach((child, idx) => {
+                html += this._renderIndentedTreeNode(child, 1, idx === treeRoot.children.length - 1, treeRoot.children.length);
+            });
+        }
+
+        html += `
+                </div>
+            </div>
+        `;
+
+        return html;
+    },
+
+    /**
+     * 재귀적으로 인덴트 트리 노드 렌더링
+     */
+    _renderIndentedTreeNode(node, depth, isLast, siblingCount) {
+        const typeIcon = node.type === 'rollup' ? '🔄' : '🧮';
+        const typeClass = node.type === 'rollup' ? 'rollup' : 'formula';
+        const refDbName = node.referencedPropertyDb || 'Unknown';
+
+        let html = `
+            <div class="tree-node-item">
+                <div class="tree-node-label">
+                    <span class="tree-node-type ${typeClass}">${typeIcon} ${node.type.toUpperCase()}</span>
+                    <span class="tree-node-db">[${this.escapeHtml(node.db)}]</span>
+                    <span class="tree-node-field">${this.escapeHtml(node.fieldName)}</span>
+        `;
+
+        if (node.referencedProperty) {
+            html += `
+                    <span class="tree-node-reference">
+                        <strong>[${this.escapeHtml(refDbName)}]</strong> ${this.escapeHtml(node.referencedProperty)}
+            `;
+            if (node.aggregationFunction) {
+                html += ` <span style="color: #999; font-size: 0.8rem;">(${this.escapeHtml(node.aggregationFunction)})</span>`;
+            }
+            html += `</span>`;
+        }
+
+        html += `
+                </div>
+        `;
+
+        // 자식 노드들 렌더링
+        if (node.children && node.children.length > 0) {
+            html += `<div class="tree-node-container">`;
+            node.children.forEach((child, idx) => {
+                const isLastChild = idx === node.children.length - 1;
+                html += this._renderIndentedTreeNode(child, depth + 1, isLastChild, node.children.length);
+            });
+            html += `</div>`;
+        }
+
+        html += `
+            </div>
+        `;
+
+        return html;
     },
 
     showError(message) {
