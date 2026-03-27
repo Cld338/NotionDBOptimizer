@@ -1667,9 +1667,7 @@ const app = {
      * 네트워크 탭 스켈레톤 렌더링
      */
     renderSkeletonNetwork() {
-        const container = document.getElementById('networkContainer');
-        // 로딩 중 메시지 표시
-        container.innerHTML = '<p style="text-align: center; color: var(--color-text-muted); padding: var(--spacing-lg);">데이터 로딩 중...</p>';
+        // networkContainer가 제거되었으므로 아무 작업 없음
     }
 };
 

@@ -36,7 +36,7 @@
                             <div class="feature-item">
                                 <span class="feature-icon">✓</span>
                                 <span class="feature-text">역관계 시각화</span>
-
+                            </div>
                         </div>
                     </div>
 
@@ -175,53 +175,7 @@
                     </div>
 
                     <!-- 네트워크 탭 -->
-                    <div id="networkTab" class="tab-content" style="display: none; display: flex; gap: var(--spacing-lg);">
-                        <div id="networkContainer" class="network-container">
-                            <div class="loading-spinner"></div>
-                            <p>네트워크 로딩 중...</p>
-                        </div>
-                        
-                        <!-- 우측 사이드바: 범례 + 컨텍스트 패널 -->
-                        <div class="network-sidebar">
-                                <!-- 범례 영역 -->
-                                <div id="networkLegend" class="network-legend">
-                                    <h3>범례</h3>
-                                    <div class="legend-item">
-                                        <span class="legend-dot current"></span>
-                                        <span>현재 데이터베이스</span>
-                                    </div>
-                                    <div class="legend-item">
-                                        <span class="legend-dot related"></span>
-                                        <span>연결된 데이터베이스</span>
-                                    </div>
-                                </div>
-                                
-                                <!-- 컨텍스트 패널: 노드/엣지 선택 정보 표시 -->
-                                <div id="contextPanel" class="context-panel" style="display: none;">
-                                    <div id="relationsTableContainer">
-                                        <div class="card-header">
-                                            <h3>필드 정보</h3>
-                                            <button class="close-context-panel" onclick="app.closeContextPanel()">✕</button>
-                                        </div>
-                                        <div class="card-content">
-                                            <div class="table-wrapper">
-                                                <table class="relations-table">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>필드명</th>
-                                                            <th>소스 DB</th>
-                                                            <th>참조 대상 (DB.필드명)</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody id="relationsTableBody">
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div id="networkTab" class="tab-content" style="display: none;">
                     </div>
                 </div>
             </main>
