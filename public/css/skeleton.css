@@ -203,7 +203,7 @@
     width: 80%;
 }
 
-/* 스켈레톤 네트워크 탭 */
+/* 스켈레톤 참조 탭 */
 .skeleton-network {
     display: flex;
     flex-direction: column;

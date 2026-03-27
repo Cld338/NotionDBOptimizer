@@ -1356,6 +1356,20 @@ const app = {
 
         // 2. 참조 트리 분석 (다단계 참조 흐름) - 인덴트 트리로 렌더링
         if (data.referenceChains && data.referenceChains.length > 0) {
+            // 하위 트리 필터링: 이미 다른 트리에 포함된 노드들을 찾기
+            const allIncludedNodes = new Set();
+            data.referenceChains.forEach(chainItem => {
+                if (chainItem.tree) {
+                    this._extractAllChildNodesFromTree(chainItem.tree, allIncludedNodes);
+                }
+            });
+
+            // 하위 트리를 제외한 root 체인들만 필터링
+            const filteredChains = data.referenceChains.filter(chainItem => {
+                const nodeKey = `${chainItem.sourceDb}|${chainItem.sourceField}`;
+                return !allIncludedNodes.has(nodeKey);
+            });
+
             html += `
             <div class="card mb-lg">
                 <div class="card-header">
@@ -1367,7 +1381,7 @@ const app = {
 
             // Root DB별로 그룹화
             const treesByDb = {};
-            data.referenceChains.forEach(chainItem => {
+            filteredChains.forEach(chainItem => {
                 const dbKey = chainItem.sourceDb;
                 if (!treesByDb[dbKey]) {
                     treesByDb[dbKey] = [];
@@ -1520,6 +1534,21 @@ const app = {
         `;
 
         return html;
+    },
+
+    /**
+     * 트리 노드의 모든 자식 노드들을 재귀적으로 추출
+     * (root 노드 자체는 제외, 자식들만 수집)
+     */
+    _extractAllChildNodesFromTree(node, nodeSet) {
+        if (!node || !node.children) return;
+        
+        node.children.forEach(child => {
+            const nodeKey = `${child.db}|${child.fieldName}`;
+            nodeSet.add(nodeKey);
+            // 재귀적으로 자식의 자식들도 수집
+            this._extractAllChildNodesFromTree(child, nodeSet);
+        });
     },
 
     showError(message) {
