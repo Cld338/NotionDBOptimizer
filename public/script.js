@@ -1146,101 +1146,10 @@ const app = {
     },
 
     renderNetwork(data) {
-        const container = document.getElementById('networkContainer');
-        container.innerHTML = '';
-        
-        // vis.js가 제대로 렌더링되도록 display를 block으로 설정
-        container.style.display = 'block';
-        
-        // 데이터 검증 - 콘솔에 로그 남기기
-        console.log('Network data:', data);
-        console.log('Nodes:', data.nodes);
-
-        // 속성 정보 저장 (나중에 showRelationsList에서 사용)
+        // 속성 정보 저장 (showRelationsList에서 사용)
         this.currentNetworkData = data;
 
-        // vis.js 네트워크 옵션
-        // 주의: physics를 enabled: false로 설정하여 초기 로딩 속도 증가
-        const options = {
-            physics: {
-                enabled: true, // 물리 시뮬레이션 비활성화 (성능 최적화)
-                barnesHut: {
-                    gravitationalConstant: -26000,
-                    centralGravity: 0.3,
-                    springLength: 200,
-                    springConstant: 0.08
-                }
-            },
-            interaction: {
-                navigationButtons: true,
-                keyboard: true,
-                zoomView: true,
-                dragView: true
-            },
-            nodes: {
-                shape: 'dot',
-                font: {
-                    size: 16,
-                    color: 'white',
-                    face: 'Arial',
-                    bold: {
-                        size: 18
-                    },
-                    strokeWidth: 2,
-                    strokeColor: 'rgba(0, 0, 0, 0.5)'
-                },
-                widthConstraint: {
-                    maximum: 200
-                }
-            },
-            edges: {
-                width: 2,
-                color: { inherit: 'from' },
-                font: {
-                    size: 13,
-                    align: 'middle',
-                    color: '#333',
-                    strokeWidth: 2,
-                    strokeColor: '#ffffff'
-                },
-                arrows: {
-                    to: { enabled: true, scaleFactor: 0.5 }
-                }
-            }
-        };
-
-        // 네트워크 생성
-        const network = new vis.Network(container, {
-            nodes: new vis.DataSet(data.nodes),
-            edges: new vis.DataSet(data.edges)
-        }, options);
-
-        // 자동 피팅
-        setTimeout(() => {
-            network.fit();
-        }, 500);
-
-        // 클릭 이벤트
-        network.on('click', (params) => {
-            if (params.edges.length > 0) {
-                // 엣지 클릭
-                const edgeId = params.edges[0];
-                const selectedEdge = data.edges.find(e => e.id === edgeId);
-                if (selectedEdge && selectedEdge.relations && selectedEdge.relations.length > 0) {
-                    this.showRelationsList(selectedEdge, data);
-                }
-            } else if (params.nodes.length > 0) {
-                // 노드 클릭
-                const nodeId = params.nodes[0];
-                const selectedNode = data.nodes.find(n => n.id === nodeId);
-                if (selectedNode) {
-                    this.showDatabaseProperties(nodeId, data);
-                }
-            }
-        });
-
         // 속성 정보 표 표시 (지연 렌더링)
-        // 네트워크 시각화 후에 테이블을 렌더링하여 UI 응답성 개선
         setTimeout(() => {
             this.renderPropertiesTable(data);
         }, 100);
@@ -1758,32 +1667,9 @@ const app = {
      * 네트워크 탭 스켈레톤 렌더링
      */
     renderSkeletonNetwork() {
-        const containerLeft = document.getElementById('networkContainer');
-        const containerRight = document.getElementById('networkPropertiesPanel');
-        
-        // 좌측 vis.js 컨테이너 스켈레톤
-        let networkHtml = `
-            <div class="skeleton-network" style="width: 100%; height: 500px; background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-border) 50%, var(--color-surface) 75%); background-size: 200% 100%; animation: loading 1.5s infinite;"></div>
-        `;
-        containerLeft.innerHTML = networkHtml;
-
-        // 우측 속성 패널 스켈레톤
-        let propertiesHtml = `
-            <div class="skeleton-section" style="padding: var(--spacing-lg);">
-                <div class="skeleton-text lg skeleton" style="width: 60%; margin-bottom: var(--spacing-md);"></div>
-                <div class="skeleton-list-item">
-                    <div class="skeleton-text skeleton"></div>
-                    <div class="skeleton-text skeleton"></div>
-                </div>
-                <div class="skeleton-list-item" style="margin-top: var(--spacing-md);">
-                    <div class="skeleton-text skeleton"></div>
-                    <div class="skeleton-text skeleton"></div>
-                </div>
-            </div>
-        `;
-        if (containerRight) {
-            containerRight.innerHTML = propertiesHtml;
-        }
+        const container = document.getElementById('networkContainer');
+        // 로딩 중 메시지 표시
+        container.innerHTML = '<p style="text-align: center; color: var(--color-text-muted); padding: var(--spacing-lg);">데이터 로딩 중...</p>';
     }
 };
 

@@ -9,8 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- JetBrains Mono 웹폰트 -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <!-- vis.js 라이브러리 -->
-    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
 </head>
 <body>
     <div id="app">
@@ -38,7 +36,7 @@
                             <div class="feature-item">
                                 <span class="feature-icon">✓</span>
                                 <span class="feature-text">역관계 시각화</span>
-                            </div>
+
                         </div>
                     </div>
 
@@ -177,15 +175,14 @@
                     </div>
 
                     <!-- 네트워크 탭 -->
-                    <div id="networkTab" class="tab-content" style="display: none;">
-                        <div class="network-wrapper">
-                            <div id="networkContainer" class="network-container">
-                                <div class="loading-spinner"></div>
-                                <p>네트워크 로딩 중...</p>
-                            </div>
-                            
-                            <!-- 우측 사이드바: 범례 + 컨텍스트 패널 -->
-                            <div class="network-sidebar">
+                    <div id="networkTab" class="tab-content" style="display: none; display: flex; gap: var(--spacing-lg);">
+                        <div id="networkContainer" class="network-container">
+                            <div class="loading-spinner"></div>
+                            <p>네트워크 로딩 중...</p>
+                        </div>
+                        
+                        <!-- 우측 사이드바: 범례 + 컨텍스트 패널 -->
+                        <div class="network-sidebar">
                                 <!-- 범례 영역 -->
                                 <div id="networkLegend" class="network-legend">
                                     <h3>범례</h3>
