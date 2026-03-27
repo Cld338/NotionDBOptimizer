@@ -482,7 +482,6 @@
     padding: var(--spacing-md);
     box-shadow: var(--shadow-md);
     border: 2px solid var(--color-primary);
-    border-opacity: 0.1;
 }
 
 .stats-section h3 {

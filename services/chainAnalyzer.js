@@ -96,7 +96,7 @@ function _createTreeNode(
     globalPropertyIdMap = {},
     visited = new Set(),
     depth = 0,
-    maxDepth = 10,
+    maxDepth = 5,
     debug = false
 ) {
     const indent = '  '.repeat(depth);

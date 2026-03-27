@@ -1076,7 +1076,7 @@ const app = {
         // 주의: physics를 enabled: false로 설정하여 초기 로딩 속도 증가
         const options = {
             physics: {
-                enabled: false, // 물리 시뮬레이션 비활성화 (성능 최적화)
+                enabled: true, // 물리 시뮬레이션 비활성화 (성능 최적화)
                 barnesHut: {
                     gravitationalConstant: -26000,
                     centralGravity: 0.3,
