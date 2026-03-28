@@ -16,6 +16,50 @@ const app = {
         error: '#ef4444'       // 빨간색 - 에러/심각
     },
 
+    // Notion 필드 타입별 아이콘 및 표시 이름
+    propertyTypeMap: {
+        'title': { icon: '📝', label: 'Title' },
+        'rich_text': { icon: '📄', label: 'Rich Text' },
+        'number': { icon: '🔢', label: 'Number' },
+        'select': { icon: '📌', label: 'Select' },
+        'multi_select': { icon: '🏷️', label: 'Multi-Select' },
+        'date': { icon: '📅', label: 'Date' },
+        'checkbox': { icon: '✓', label: 'Checkbox' },
+        'email': { icon: '📧', label: 'Email' },
+        'phone_number': { icon: '📞', label: 'Phone' },
+        'url': { icon: '🔗', label: 'URL' },
+        'created_time': { icon: '⏰', label: 'Created Time' },
+        'last_edited_time': { icon: '⏱️', label: 'Last Edited' },
+        'created_by': { icon: '👤', label: 'Created By' },
+        'last_edited_by': { icon: '👤', label: 'Last Edited By' },
+        'people': { icon: '👥', label: 'People' },
+        'relation': { icon: '🔗', label: 'Relation' },
+        'rollup': { icon: '🔄', label: 'Rollup' },
+        'formula': { icon: '🧮', label: 'Formula' },
+        'files': { icon: '📁', label: 'Files' },
+        'button': { icon: '🔘', label: 'Button' },
+        'unique_id': { icon: '#️⃣', label: 'Unique ID' }
+    },
+
+    /**
+     * 필드 타입을 정규화하고 아이콘과 표시 이름 반환
+     */
+    getPropertyTypeDisplay(type) {
+        const lowerType = (type || '').toLowerCase().trim();
+        return this.propertyTypeMap[lowerType] || { 
+            icon: '❓', 
+            label: type || 'UNKNOWN' 
+        };
+    },
+
+    /**
+     * 필드 타입을 아이콘 + 레이블 형식으로 포맷팅
+     */
+    formatPropertyType(type) {
+        const display = this.getPropertyTypeDisplay(type);
+        return `${display.icon} ${display.label}`;
+    },
+
     async init() {
         // URL 파라미터 확인
         const params = new URLSearchParams(window.location.search);
@@ -620,6 +664,7 @@ const app = {
         let html = '';
         Object.entries(columnStats).forEach(([key, stats]) => {
             const completenessColor = stats.completeness >= 80 ? this.colors.success : stats.completeness >= 60 ? this.colors.warning : this.colors.error;
+            const typeDisplay = this.formatPropertyType(stats.type);
             
             html += `
                 <div class="column-row">
@@ -627,7 +672,7 @@ const app = {
                         <div class="column-name">
                             ${this.escapeHtml(stats.name)}
                         </div>
-                        <div class="column-type">${stats.type}</div>
+                        <div class="column-type">${typeDisplay}</div>
                     </div>
                     <div class="column-stats">
                         <div class="stat-item">
@@ -764,15 +809,18 @@ const app = {
                 <div class="summary-section">
                     <h4 class="summary-section-title">컬럼 타입</h4>
                     <div class="type-distribution">
-                        ${sortedTypes.map(([type, count]) => `
-                            <div class="type-item">
-                                <div class="type-name">${type}</div>
-                                <div class="type-bar">
-                                    <div class="type-fill" style="width: ${(count / totalColumns * 100)}%"></div>
+                        ${sortedTypes.map(([type, count]) => {
+                            const display = this.getPropertyTypeDisplay(type);
+                            return `
+                                <div class="type-item">
+                                    <div class="type-name">${display.icon} ${display.label}</div>
+                                    <div class="type-bar">
+                                        <div class="type-fill" style="width: ${(count / totalColumns * 100)}%"></div>
+                                    </div>
+                                    <div class="type-count">${count}</div>
                                 </div>
-                                <div class="type-count">${count}</div>
-                            </div>
-                        `).join('')}
+                            `;
+                        }).join('')}
                     </div>
                 </div>
             </div>
@@ -1269,89 +1317,102 @@ const app = {
         // 데이터 검증
         if (!data || !data.propertiesInfo) {
             console.error('Invalid network data structure:', data);
-            tabContent.innerHTML = '<div class="card"><div class="card-content" style="color: var(--color-error);">네트워크 데이터가 유효하지 않습니다.</div></div>';
+            tabContent.innerHTML = '<div class="network-container"><div class="network-section"><div style="color: var(--color-error); text-align: center; padding: var(--spacing-lg);">네트워크 데이터가 유효하지 않습니다.</div></div></div>';
             return;
-        }
-
-        let propertiesSection = tabContent.querySelector('.properties-info-section');
-        
-        if (!propertiesSection) {
-            propertiesSection = document.createElement('div');
-            propertiesSection.className = 'properties-info-section mt-lg';
-            tabContent.appendChild(propertiesSection);
         }
 
         const referencingDbs = Object.entries(data.propertiesInfo)
             .filter(([_, dbInfo]) => dbInfo && dbInfo.properties && dbInfo.properties.length > 0);
 
-        let html = '';
+        let html = '<div class="network-container">';
+
+        // 오버뷰 섹션
+        const dataReferencingDbs = referencingDbs.filter(([_, dbInfo]) => 
+            dbInfo.properties.some(p => p.type === 'rollup' || p.type === 'formula')
+        );
+        
+        const relationDbs = referencingDbs.filter(([_, dbInfo]) => 
+            dbInfo.properties.some(p => p.type === 'relation')
+        );
+
+        // 네트워크 통계 섹션
+        html += `
+        <div class="network-section">
+            <h3><span>🔗</span>참조 네트워크 분석</h3>
+            <p style="color: var(--color-text-muted); margin: 0; font-size: 0.9rem;">데이터베이스 간의 모든 참조 관계를 시각화하고 분석합니다</p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                <div style="background: var(--color-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--color-accent);">${dataReferencingDbs.length}</div>
+                    <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">데이터 참조 DB</div>
+                </div>
+                <div style="background: var(--color-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--color-accent);">${relationDbs.length}</div>
+                    <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">관계 필드 DB</div>
+                </div>
+                <div style="background: var(--color-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 1.3rem; font-weight: 700; color: var(--color-accent);">${referencingDbs.length}</div>
+                    <div style="font-size: 0.8rem; color: var(--color-text-muted); margin-top: 4px;">참조 데이터베이스</div>
+                </div>
+            </div>
+        </div>
+        `;
 
         // 1. 데이터 참조 관계 (Rollup / Formula) 테이블
-        if (referencingDbs.length > 0) {
-            const dataReferencingDbs = referencingDbs.filter(([_, dbInfo]) => 
-                dbInfo.properties.some(p => p.type === 'rollup' || p.type === 'formula')
-            );
+        if (dataReferencingDbs.length > 0) {
+            html += `
+        <div class="network-section">
+            <h3><span>📊</span>데이터 참조 관계 (Rollup / Formula)</h3>
+            <p style="color: var(--color-text-muted); margin: 0; font-size: 0.9rem;">Rollup과 Formula를 통한 간접 참조 관계</p>
+            <div style="margin-top: var(--spacing-lg); overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: var(--color-secondary);">
+                            <th style="padding: var(--spacing-md); text-align: left; font-weight: 600; color: var(--color-text-light); border-radius: var(--radius-md) 0 0 0;">소스 DB</th>
+                            <th style="padding: var(--spacing-md); text-align: left; font-weight: 600; color: var(--color-text-light);">필드명</th>
+                            <th style="padding: var(--spacing-md); text-align: left; font-weight: 600; color: var(--color-text-light);">필드 유형</th>
+                            <th style="padding: var(--spacing-md); text-align: left; font-weight: 600; color: var(--color-text-light); border-radius: 0 var(--radius-md) 0 0;">참조 대상</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
 
-            if (dataReferencingDbs.length > 0) {
-                html += `
-                <div class="card mb-lg">
-                    <div class="card-header">
-                        <h3>📊 데이터 참조 관계 (Rollup / Formula)</h3>
-                    </div>
-                    <div class="card-content p-0">
-                        <div class="table-wrapper">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>소스 DB</th>
-                                        <th>필드명</th>
-                                        <th>필드 유형</th>
-                                        <th>참조 대상</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                `;
-
-                dataReferencingDbs.forEach(([dbId, dbInfo]) => {
-                    dbInfo.properties
-                        .filter(p => p.type === 'rollup' || p.type === 'formula')
-                        .forEach((prop) => {
-                            const isRollup = prop.type === 'rollup';
-                            const typeLabel = isRollup ? '🔄 Rollup' : '🧮 Formula';
-                            const typeClass = isRollup ? 'text-primary' : 'text-accent';
-                            
-                            let refTarget = '-';
-                            if (isRollup) {
-                                refTarget = `<strong>[${this.escapeHtml(prop.referencedDatabase)}]</strong> ${this.escapeHtml(prop.referencedProperty)} <span class="text-muted">(${this.escapeHtml(prop.aggregationFunction)})</span>`;
-                            } else if (prop.type === 'formula') {
-                                if (prop.referencedFields && prop.referencedFields.length > 0) {
-                                    refTarget = prop.referencedFields.map(field => 
-                                        `<span class="property-tag">${this.escapeHtml(field)}</span>`
-                                    ).join(' ');
-                                } else {
-                                    refTarget = `<span class="text-muted text-sm">(직접 참조 없음)</span>`;
-                                }
+            dataReferencingDbs.forEach(([dbId, dbInfo]) => {
+                dbInfo.properties
+                    .filter(p => p.type === 'rollup' || p.type === 'formula')
+                    .forEach((prop) => {
+                        const isRollup = prop.type === 'rollup';
+                        const typeLabel = isRollup ? '🔄 Rollup' : '🧮 Formula';
+                        
+                        let refTarget = '-';
+                        if (isRollup) {
+                            refTarget = `<strong>[${this.escapeHtml(prop.referencedDatabase)}]</strong> ${this.escapeHtml(prop.referencedProperty)} <span style="color: var(--color-text-muted); font-size: 0.85rem;">(${this.escapeHtml(prop.aggregationFunction)})</span>`;
+                        } else if (prop.type === 'formula') {
+                            if (prop.referencedFields && prop.referencedFields.length > 0) {
+                                refTarget = prop.referencedFields.map(field => 
+                                    `<span style="display: inline-block; background: linear-gradient(135deg, rgba(230, 144, 70, 0.08), rgba(230, 144, 70, 0.04)); border: 1px solid rgba(230, 144, 70, 0.2); padding: 2px 6px; border-radius: var(--radius-sm); font-size: 0.85rem; color: var(--color-accent); margin-right: 4px;">${this.escapeHtml(field)}</span>`
+                                ).join('');
+                            } else {
+                                refTarget = `<span style="color: var(--color-text-muted); font-size: 0.85rem;">(직접 참조 없음)</span>`;
                             }
-                            
-                            html += `
-                                    <tr>
-                                        <td><strong>${this.escapeHtml(dbInfo.databaseTitle)}</strong></td>
-                                        <td>${this.escapeHtml(prop.name)}</td>
-                                        <td><span class="${typeClass} font-weight-600">${typeLabel}</span></td>
-                                        <td>${refTarget}</td>
-                                    </tr>
-                            `;
-                        });
-                });
+                        }
+                        
+                        html += `
+                        <tr style="border-bottom: 1px solid var(--color-divider);">
+                            <td style="padding: var(--spacing-md);"><strong>${this.escapeHtml(dbInfo.databaseTitle)}</strong></td>
+                            <td style="padding: var(--spacing-md);">${this.escapeHtml(prop.name)}</td>
+                            <td style="padding: var(--spacing-md);"><span style="font-weight: 600; color: ${isRollup ? 'var(--color-primary)' : 'var(--color-accent)'};">${typeLabel}</span></td>
+                            <td style="padding: var(--spacing-md);">${refTarget}</td>
+                        </tr>
+                        `;
+                    });
+            });
 
-                html += `
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                `;
-            }
+            html += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+            `;
         }
 
         // 2. 참조 트리 분석 (다단계 참조 흐름) - 인덴트 트리로 렌더링
@@ -1371,12 +1432,11 @@ const app = {
             });
 
             html += `
-            <div class="card mb-lg">
-                <div class="card-header">
-                    <h3>🌳 참조 경로 분석 (인덴트 트리 뷰)</h3>
-                </div>
-                <div class="card-content">
-                    <div class="indented-tree-root">
+        <div class="network-section">
+            <h3><span>🌳</span>참조 경로 분석</h3>
+            <p style="color: var(--color-text-muted); margin: 0; font-size: 0.9rem;">다단계 참조 흐름을 인덴트 트리로 표시합니다</p>
+            <div style="margin-top: var(--spacing-lg);">
+                <div class="indented-tree-root">
             `;
 
             // Root DB별로 그룹화
@@ -1394,10 +1454,10 @@ const app = {
                 const chains = treesByDb[dbName];
                 
                 html += `
-                    <div class="mb-lg">
-                        <h5 class="mb-md text-primary" style="font-weight: 600; font-size: 1rem;">
+                    <div style="margin-bottom: var(--spacing-lg);">
+                        <h5 style="margin: 0 0 var(--spacing-md) 0; font-weight: 600; font-size: 0.95rem; color: var(--color-accent);">
                             📁 <strong>${this.escapeHtml(dbName)}</strong>
-                            <span class="text-muted" style="font-size: 0.85rem; font-weight: 400;">(${chains.length}개 참조 필드)</span>
+                            <span style="font-size: 0.8rem; color: var(--color-text-muted); font-weight: 400;">(${chains.length}개 참조 필드)</span>
                         </h5>
                 `;
 
@@ -1416,22 +1476,25 @@ const app = {
             });
 
             html += `
-                    </div>
                 </div>
             </div>
+        </div>
             `;
-        } else if (data.referenceChains) {
+        } else if (data.referenceChains !== undefined) {
             html += `
-            <div class="card mb-lg">
-                <div class="card-content text-center text-muted p-lg">
-                    <span style="font-size: 2rem; display: block; margin-bottom: var(--spacing-sm);">🌳</span>
-                    깊게 연결된 참조가 없습니다. (현재 쾌적한 상태입니다)
-                </div>
+        <div class="network-section">
+            <div style="text-align: center; padding: var(--spacing-lg); color: var(--color-text-muted);">
+                <span style="font-size: 2rem; display: block; margin-bottom: var(--spacing-sm);">🌳</span>
+                <p>깊게 연결된 참조가 없습니다.</p>
+                <p style="font-size: 0.85rem;">현재 안정적인 데이터 구조를 유지하고 있습니다.</p>
             </div>
+        </div>
             `;
         }
 
-        propertiesSection.innerHTML = html;
+        html += '</div>';
+        
+        tabContent.innerHTML = html;
     },
 
     /**
@@ -1462,14 +1525,18 @@ const app = {
      * 참조 트리를 인덴트 트리 HTML로 렌더링
      */
     _renderReferenceChainAsIndentedTree(sourceDb, sourceField, sourceType, treeRoot) {
+        // 타입 안전 처리
+        const safeSourceType = (sourceType || 'formula').toLowerCase().trim();
+        const sourceTypeDisplay = this.getPropertyTypeDisplay(safeSourceType);
+        
         let html = `
             <div class="tree-root-item">
                 <div class="tree-root-header">
                     <span class="tree-toggle" title="펼치기/접기">▼</span>
-                    <span class="tree-root-icon" style="font-size: 1.1rem; margin-right: 4px;">${sourceType === 'rollup' ? '🔄' : '🧮'}</span>
+                    <span class="tree-root-icon" style="font-size: 1.1rem; margin-right: 4px;">${sourceTypeDisplay.icon}</span>
                     <span class="tree-root-db" style="font-weight: 600;">[${this.escapeHtml(sourceDb)}]</span>
                     <span class="tree-root-field" style="font-family: 'Monaco', 'Menlo', monospace; background: rgba(52, 152, 219, 0.1); padding: 2px 6px; border-radius: 3px; font-size: 0.9rem;">${this.escapeHtml(sourceField)}</span>
-                    <span class="tree-root-type" style="font-size: 0.75rem; color: #666; margin-left: auto;">${sourceType.toUpperCase()}</span>
+                    <span class="tree-root-type" style="font-size: 0.75rem; color: #666; margin-left: auto;">${sourceTypeDisplay.label.toUpperCase()}</span>
                 </div>
                 <div class="tree-node-container">
         `;
@@ -1492,40 +1559,58 @@ const app = {
      * 재귀적으로 인덴트 트리 노드 렌더링
      */
     _renderIndentedTreeNode(node, depth, isLast, siblingCount) {
-        const typeIcon = node.type === 'rollup' ? '🔄' : '🧮';
-        const typeClass = node.type === 'rollup' ? 'rollup' : 'formula';
+        // 노드 타입 안전 처리
+        const nodeType = (node.type || 'formula').toLowerCase().trim();
+        const display = this.getPropertyTypeDisplay(nodeType);
+        const typeIcon = display.icon;
+        const typeLabel = display.label.toUpperCase();
         const refDbName = node.referencedPropertyDb || 'Unknown';
 
         let html = `
             <div class="tree-node-item">
                 <div class="tree-node-label">
-                    <span class="tree-node-type ${typeClass}">${typeIcon} ${node.type.toUpperCase()}</span>
+                    <span class="tree-node-type ${nodeType}">${typeIcon} ${typeLabel}</span>
                     <span class="tree-node-db">[${this.escapeHtml(node.db)}]</span>
                     <span class="tree-node-field">${this.escapeHtml(node.fieldName)}</span>
-        `;
-
-        if (node.referencedProperty) {
-            html += `
-                    <span class="tree-node-reference">
-                        <strong>[${this.escapeHtml(refDbName)}]</strong> ${this.escapeHtml(node.referencedProperty)}
-            `;
-            if (node.aggregationFunction) {
-                html += ` <span style="color: #999; font-size: 0.8rem;">(${this.escapeHtml(node.aggregationFunction)})</span>`;
-            }
-            html += `</span>`;
-        }
-
-        html += `
                 </div>
         `;
 
-        // 자식 노드들 렌더링
-        if (node.children && node.children.length > 0) {
+        // 자식 노드들 및 참조 정보 렌더링
+        if ((node.children && node.children.length > 0) || node.referencedProperty) {
             html += `<div class="tree-node-container">`;
-            node.children.forEach((child, idx) => {
-                const isLastChild = idx === node.children.length - 1;
-                html += this._renderIndentedTreeNode(child, depth + 1, isLastChild, node.children.length);
-            });
+            
+            // 참조 정보를 자식 노드처럼 렌더링
+            if (node.referencedProperty) {
+                // 참조된 필드의 실제 타입 사용
+                const refFieldType = (node.referencedPropertyType || nodeType).toLowerCase().trim();
+                const refDisplay = this.getPropertyTypeDisplay(refFieldType);
+                const refTypeIcon = refDisplay.icon;
+                const refTypeLabel = refDisplay.label.toUpperCase();
+                
+                html += `
+                <div class="tree-node-item">
+                    <div class="tree-node-label">
+                        <span class="tree-node-type ${refFieldType}">${refTypeIcon} ${refTypeLabel}</span>
+                        <span class="tree-node-db">[${this.escapeHtml(refDbName)}]</span>
+                        <span class="tree-node-field">${this.escapeHtml(node.referencedProperty)}</span>
+                `;
+                if (node.aggregationFunction) {
+                    html += `<span class="tree-node-type" style="background: rgba(180, 180, 180, 0.1); color: #999;">${this.escapeHtml(node.aggregationFunction)}</span>`;
+                }
+                html += `
+                    </div>
+                </div>
+                `;
+            }
+            
+            // 자식 노드들 렌더링
+            if (node.children && node.children.length > 0) {
+                node.children.forEach((child, idx) => {
+                    const isLastChild = idx === node.children.length - 1;
+                    html += this._renderIndentedTreeNode(child, depth + 1, isLastChild, node.children.length);
+                });
+            }
+            
             html += `</div>`;
         }
 
@@ -1695,63 +1780,73 @@ const app = {
         const tabContent = document.getElementById('networkTab');
         
         let html = `
-            <div class="skeleton-network">
+            <div class="network-container">
+                <!-- 오버뷰 섹션 스켈레톤 -->
+                <div class="network-section">
+                    <div style="margin-bottom: var(--spacing-md);">
+                        <div class="skeleton-text lg skeleton" style="width: 50%; height: 28px;"></div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+                        <div style="background: var(--color-secondary); padding: var(--spacing-md); border-radius: var(--radius-md);">
+                            <div class="skeleton-text skeleton" style="width: 40%; height: 24px;"></div>
+                            <div class="skeleton-text skeleton" style="width: 60%; height: 16px; margin-top: 8px;"></div>
+                        </div>
+                        <div style="background: var(--color-secondary); padding: var(--spacing-md); border-radius: var(--radius-md);">
+                            <div class="skeleton-text skeleton" style="width: 40%; height: 24px;"></div>
+                            <div class="skeleton-text skeleton" style="width: 60%; height: 16px; margin-top: 8px;"></div>
+                        </div>
+                        <div style="background: var(--color-secondary); padding: var(--spacing-md); border-radius: var(--radius-md);">
+                            <div class="skeleton-text skeleton" style="width: 40%; height: 24px;"></div>
+                            <div class="skeleton-text skeleton" style="width: 60%; height: 16px; margin-top: 8px;"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- 데이터 참조 관계 테이블 스켈레톤 -->
-                <div class="skeleton-network-table">
-                    <div style="margin-bottom: var(--spacing-lg);">
-                        <div class="skeleton-text lg skeleton" style="width: 40%;"></div>
+                <div class="network-section">
+                    <div style="margin-bottom: var(--spacing-md);">
+                        <div class="skeleton-text lg skeleton" style="width: 50%; height: 28px;"></div>
                     </div>
-                    <div class="skeleton-network-table-header">
-                        <div class="skeleton-text skeleton"></div>
-                        <div class="skeleton-text skeleton"></div>
-                        <div class="skeleton-text skeleton"></div>
-                        <div class="skeleton-text skeleton"></div>
+                    <div style="margin-top: var(--spacing-lg); overflow-x: auto;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <thead>
+                                <tr style="background: var(--color-secondary);">
+                                    <th style="padding: var(--spacing-md);"><div class="skeleton-text skeleton"></div></th>
+                                    <th style="padding: var(--spacing-md);"><div class="skeleton-text skeleton"></div></th>
+                                    <th style="padding: var(--spacing-md);"><div class="skeleton-text skeleton"></div></th>
+                                    <th style="padding: var(--spacing-md);"><div class="skeleton-text skeleton"></div></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Array.from({length: 3}, () => `
+                                <tr style="border-bottom: 1px solid var(--color-divider);">
+                                    <td style="padding: var(--spacing-md);"><div class="skeleton-text skeleton"></div></td>
+                                    <td style="padding: var(--spacing-md);"><div class="skeleton-text skeleton"></div></td>
+                                    <td style="padding: var(--spacing-md);"><div class="skeleton-text skeleton" style="width: 60%;"></div></td>
+                                    <td style="padding: var(--spacing-md);"><div class="skeleton-text skeleton"></div></td>
+                                </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
                     </div>
-                    
-                    ${Array.from({length: 4}, () => `
-                    <div class="skeleton-network-table-row">
-                        <div class="skeleton-text skeleton"></div>
-                        <div class="skeleton-text skeleton"></div>
-                        <div class="skeleton-text skeleton"></div>
-                        <div class="skeleton-text skeleton"></div>
-                    </div>
-                    `).join('')}
                 </div>
 
                 <!-- 참조 경로 분석 스켈레톤 -->
-                <div class="skeleton-network-reference-chain">
-                    <div style="margin-bottom: var(--spacing-lg);">
-                        <div class="skeleton-text lg skeleton" style="width: 40%;"></div>
+                <div class="network-section">
+                    <div style="margin-bottom: var(--spacing-md);">
+                        <div class="skeleton-text lg skeleton" style="width: 50%; height: 28px;"></div>
                     </div>
-
-                    <!-- 섹션 1 -->
-                    <div class="skeleton-network-reference-section">
-                        <div class="skeleton-network-reference-section-title skeleton"></div>
-                        
-                        ${Array.from({length: 3}, () => `
-                        <div class="skeleton-reference-chain-item">
-                            <div class="skeleton-reference-chain-item-row">
-                                <div class="skeleton-text skeleton"></div>
+                    <div style="margin-top: var(--spacing-lg);">
+                        ${Array.from({length: 2}, () => `
+                        <div style="margin-bottom: var(--spacing-lg);">
+                            <div class="skeleton-text skeleton" style="width: 30%; height: 18px; margin-bottom: var(--spacing-md);"></div>
+                            ${Array.from({length: 2}, () => `
+                            <div style="background: var(--color-secondary); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: var(--spacing-sm);">
+                                <div class="skeleton-text skeleton" style="width: 40%;"></div>
+                                <div class="skeleton-text skeleton" style="width: 100%; margin-top: 8px;"></div>
+                                <div class="skeleton-text skeleton" style="width: 80%; margin-top: 8px;"></div>
                             </div>
-                            <div class="skeleton-reference-chain-item-row">
-                                <div style="flex: 1;"><div class="skeleton-text skeleton"></div></div>
-                            </div>
-                        </div>
-                        `).join('')}
-                    </div>
-
-                    <!-- 섹션 2 -->
-                    <div class="skeleton-network-reference-section">
-                        <div class="skeleton-network-reference-section-title skeleton"></div>
-                        
-                        ${Array.from({length: 3}, () => `
-                        <div class="skeleton-reference-chain-item">
-                            <div class="skeleton-reference-chain-item-row">
-                                <div class="skeleton-text skeleton"></div>
-                            </div>
-                            <div class="skeleton-reference-chain-item-row">
-                                <div style="flex: 1;"><div class="skeleton-text skeleton"></div></div>
-                            </div>
+                            `).join('')}
                         </div>
                         `).join('')}
                     </div>
@@ -1759,7 +1854,6 @@ const app = {
             </div>
         `;
         
-        // networkTab의 기존 내용을 스켈레톤으로 교체
         tabContent.innerHTML = html;
     }
 };

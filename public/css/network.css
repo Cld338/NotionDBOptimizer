@@ -1,11 +1,114 @@
-/* ============ 네트워크 ============ */
+/* ============ 네트워크 컨테이너 - 분석 탭과 일치 ============ */
+.network-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    width: 100%;
+}
+
+/* ============ 네트워크 섹션 래퍼 ============ */
+.network-section {
+    background: var(--color-surface);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(230, 144, 70, 0.05);
+}
+
+.network-section h3 {
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-md);
+    font-size: 1.2rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.network-section h4 {
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-md);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-top: var(--spacing-lg);
+}
+
+/* ============ 섹션 헤더 (분석 탭의 collapsible-section과 유사) ============ */
+.network-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    padding: 0;
+    cursor: pointer;
+    user-select: none;
+    transition: all var(--transition-fast);
+}
+
+.network-section-header:hover {
+    opacity: 0.8;
+}
+
+.section-title-wrapper {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    flex: 1;
+}
+
+.section-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.section-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.section-title {
+    color: var(--color-accent);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.section-subtitle {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin: 0;
+}
+
+.section-header-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    flex-shrink: 0;
+}
+
+.collapse-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: transform var(--transition-fast);
+    color: var(--color-text-muted);
+}
+
+.collapse-toggle.expanded {
+    transform: rotate(180deg);
+}
+
+/* ============ 구형/비사용 레이아웃 (기존 호환성) ============ */
 .network-wrapper {
     display: flex;
     gap: var(--spacing-lg);
     margin-bottom: var(--spacing-lg);
 }
 
-.network-container {
+.network-wrapper .network-container {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -258,22 +361,6 @@
 .tree-node-type.formula {
     background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), transparent);
     color: #a855f7;
-}
-
-.tree-node-reference {
-    margin-top: var(--spacing-xs);
-    padding-left: var(--spacing-md);
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.tree-node-reference::before {
-    content: '↳';
-    color: var(--color-divider);
-    margin-right: 4px;
 }
 
 .tree-children-container {

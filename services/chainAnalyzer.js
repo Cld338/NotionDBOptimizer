@@ -124,12 +124,16 @@ function _createTreeNode(
 
     // 현재 노드 정보 생성
     const dbInfo = dbPropertiesMap.get(dbId);
+    
+    // 필드의 실제 타입 결정 (항상 필드 타입 사용)
+    const actualType = property.type ? property.type.toLowerCase() : 'unknown';
+    
     const node = {
         db: dbInfo?.databaseTitle || 'Unknown',
         dbId: dbId,
         fieldName: fieldName,
         fieldType: property.type,
-        type: property.type === 'rollup' ? 'rollup' : property.type === 'formula' ? 'formula' : 'unknown',
+        type: actualType,  // 실제 필드 타입 사용 (formula, rollup, title 등)
         referencedProperty: property.referencedProperty || null,
         referencedPropertyDb: null,
         referencedPropertyDbId: null,
@@ -144,6 +148,14 @@ function _createTreeNode(
         if (refDbInfo) {
             node.referencedPropertyDb = refDbInfo.databaseTitle;
             node.referencedPropertyDbId = property.referencedDatabaseId;
+            
+            // 참조된 필드의 실제 타입 찾기
+            if (property.referencedProperty) {
+                const refProp = refDbInfo.properties.find(p => p.name === property.referencedProperty);
+                if (refProp) {
+                    node.referencedPropertyType = refProp.type;  // 참조된 필드의 타입 저장
+                }
+            }
         }
     }
 
