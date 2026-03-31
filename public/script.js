@@ -624,6 +624,27 @@ const app = {
                 </div>
                 ` : ''}
 
+                <!-- 4-1단계: 깊은 참조 경로 분석 섹션 (별도) -->
+                ${performanceAnalysis.deepReferenceChains && performanceAnalysis.deepReferenceChains.length > 0 ? `
+                <div class="collapsible-section" data-section="deep-chains">
+                    <div class="section-header" onclick="app.toggleSection(event)">
+                        <div class="section-title-wrapper">
+                            <span class="section-icon">🔗</span>
+                            <div class="section-title-group">
+                                <h3 class="section-title">깊은 참조 경로 분석</h3>
+                                <p class="section-subtitle">${performanceAnalysis.deepReferenceChains.length}개 발견 - 3단계 이상의 참조 체인</p>
+                            </div>
+                        </div>
+                        <div class="section-header-actions">
+                            <div class="collapse-toggle">▼</div>
+                        </div>
+                    </div>
+                    <div class="section-content">
+                        ${this.renderDeepReferenceChainsSection(performanceAnalysis.deepReferenceChains)}
+                    </div>
+                </div>
+                ` : ''}
+
                 <!-- 5단계: 컬럼별 분석 (상세 데이터 탐색) -->
                 <div class="collapsible-section" data-section="columns">
                     <div class="section-header" onclick="app.toggleSection(event)">
@@ -1011,6 +1032,181 @@ const app = {
         return checklist;
     },
 
+    /**
+     * 깊은 참조 경로 분석 섹션 렌더링 (내용만)
+     */
+    renderDeepReferenceChainsSection(deepChains) {
+        if (!deepChains || deepChains.length === 0) {
+            return '';
+        }
+
+        let html = `
+            <div class="deep-chains-section">
+                <div class="deep-chains-list">
+                    ${deepChains.map((chain, idx) => this._renderDeepChainItem(chain, idx)).join('')}
+                </div>
+            </div>
+        `;
+
+        return html;
+    },
+
+    /**
+     * 개별 깊은 참조 경로 아이템 렌더링
+     */
+    _renderDeepChainItem(chain, index) {
+        const chainId = `deep-chain-${index}`;
+        const pathText = chain.path.map(node => `${node.db}.${node.field}`).join(' → ');
+        const severityColor = chain.severity === 'critical' ? '#ef4444' : chain.severity === 'warning' ? '#f59e0b' : '#10b981';
+        const severityLabel = chain.severity === 'critical' ? '높음' : chain.severity === 'warning' ? '중간' : '낮음';
+        const depthBadgeColor = chain.depth >= 5 ? '#dc2626' : chain.depth >= 4 ? '#ea580c' : '#0ea5e9';
+
+        let html = `
+            <div class="deep-chain-item" data-chain-id="${chainId}">
+                <div class="deep-chain-header" onclick="app.toggleDeepChainItem('${chainId}')">
+                    <div class="deep-chain-header-left">
+                        <span class="deep-chain-toggle">▶</span>
+                        <span class="deep-chain-depth-badge" style="background-color: ${depthBadgeColor};">${chain.depth}단계</span>
+                        <span class="deep-chain-path-text" title="${pathText}">${this.escapeHtml(pathText)}</span>
+                    </div>
+                    <div class="deep-chain-header-right">
+                        <span class="deep-chain-info">
+                            영향: <strong>${chain.affectedRecords}</strong>개 레코드
+                        </span>
+                        <span class="deep-chain-severity" style="background-color: ${severityColor};">
+                            ${severityLabel}
+                        </span>
+                        <button class="action-btn" onclick="event.stopPropagation(); app.openNotionDatabase()" title="Notion으로 이동">↗</button>
+                    </div>
+                </div>
+                <div class="deep-chain-content" style="display: none;">
+                    ${this._renderDeepChainContent(chain)}
+                </div>
+            </div>
+        `;
+
+        return html;
+    },
+
+    /**
+     * 깊은 참조 경로 펼쳐진 컨텐츠 렌더링
+     */
+    _renderDeepChainContent(chain) {
+        const depthDescription = chain.depth >= 5 
+            ? `이 체인은 매우 깊습니다(${chain.depth}단계). 각 쿼리마다 여러 단계의 중첩 계산이 필요합니다.`
+            : `이 체인은 ${chain.depth}단계로 구성되어 있습니다.`;
+
+        let html = `
+            <div class="deep-chain-content-inner">
+                <!-- 🔀 연관 데이터베이스 -->
+                <div class="chain-section">
+                    <h5 class="chain-section-title">🔀 연관 데이터베이스 (${chain.relatedDatabases.length}개)</h5>
+                    <div class="chain-section-content">
+                        <div class="chain-databases-list">
+                            ${chain.path.map((node, idx) => `
+                                <div class="chain-db-node" style="margin-left: ${idx * 16}px;">
+                                    <span class="chain-db-icon">${idx === 0 ? '📍' : idx === chain.path.length - 1 ? '🎯' : '→'}</span>
+                                    <span class="chain-db-name" title="${this.escapeHtml(node.db)}.${this.escapeHtml(node.field)}">${this.escapeHtml(node.db)}</span>
+                                    <span class="chain-field-type" style="background: ${this._getChainTypeColor(node.type)};">
+                                        ${this.getPropertyTypeDisplay(node.type).icon} ${node.type.toUpperCase()}
+                                    </span>
+                                    <span class="chain-field-name">${this.escapeHtml(node.field)}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 💡 최적화 제안 -->
+                <div class="chain-section">
+                    <h5 class="chain-section-title">💡 최적화 제안 (${chain.optimizationTips.length}개)</h5>
+                    <div class="chain-section-content">
+                        <div class="chain-tips-list">
+                            ${chain.optimizationTips.map((tip, idx) => {
+                                const priorityColor = tip.priority === 'high' ? '#ef4444' : tip.priority === 'medium' ? '#f59e0b' : '#3b82f6';
+                                const priorityLabel = tip.priority === 'high' ? '우선' : tip.priority === 'medium' ? '추가' : '참고';
+                                return `
+                                    <div class="chain-tip-item">
+                                        <div class="chain-tip-header">
+                                            <span class="chain-tip-priority" style="background-color: ${priorityColor};">${priorityLabel}</span>
+                                            <span class="chain-tip-title">${this.escapeHtml(tip.title)}</span>
+                                        </div>
+                                        <p class="chain-tip-desc">${this.escapeHtml(tip.description)}</p>
+                                        <p class="chain-tip-action">💬 ${this.escapeHtml(tip.action)}</p>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        return html;
+    },
+
+    /**
+     * 체인 타입별 색상 반환
+     */
+    _getChainTypeColor(type) {
+        const typeMap = {
+            'formula': 'rgba(168, 85, 247, 0.15)',
+            'rollup': 'rgba(34, 197, 94, 0.15)',
+            'relation': 'rgba(59, 130, 246, 0.15)',
+            'select': 'rgba(245, 158, 11, 0.15)',
+            'multi_select': 'rgba(245, 158, 11, 0.15)'
+        };
+        return typeMap[type] || 'rgba(148, 163, 184, 0.15)';
+    },
+
+    /**
+     * 깊은 참조 경로 아이템 토글
+     */
+    toggleDeepChainItem(chainId) {
+        const item = document.querySelector(`[data-chain-id="${chainId}"]`);
+        if (!item) return;
+
+        const header = item.querySelector('.deep-chain-header');
+        const content = item.querySelector('.deep-chain-content');
+        const toggle = item.querySelector('.deep-chain-toggle');
+
+        const isExpanded = content.style.display !== 'none';
+
+        // 다른 모든 아이템 닫기
+        document.querySelectorAll('.deep-chain-item').forEach(el => {
+            if (el !== item) {
+                el.querySelector('.deep-chain-content').style.display = 'none';
+                el.querySelector('.deep-chain-toggle').classList.remove('expanded');
+            }
+        });
+
+        // 현재 아이템 토글
+        if (isExpanded) {
+            content.style.display = 'none';
+            toggle.classList.remove('expanded');
+        } else {
+            content.style.display = 'block';
+            toggle.classList.add('expanded');
+        }
+    },
+
+    /**
+     * 네트워크 탭의 참조 경로 시각화로 스크롤
+     */
+    scrollToNetworkTab() {
+        const networkTab = document.querySelector('[data-tab="network"]');
+        if (networkTab) {
+            networkTab.click();
+            // 약간의 지연 후 참조 경로 섹션으로 스크롤
+            setTimeout(() => {
+                const refSection = document.querySelector('.indented-tree-root');
+                if (refSection) {
+                    refSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }, 100);
+        }
+    },
+
     renderPerformanceAnalysis(performanceAnalysis) {
         const issues = performanceAnalysis.issues || {};
         const opportunities = performanceAnalysis.opportunities || [];
@@ -1058,7 +1254,7 @@ const app = {
                         }).join('')}
                     </div>
                 </div>
-                ` : this.renderPerformanceSuccessChecklist(performanceAnalysis)} 
+                ` : this.renderPerformanceSuccessChecklist(performanceAnalysis)}
 
                 <!-- 크기 제한 체크 -->
                 ${limits.metrics ? `

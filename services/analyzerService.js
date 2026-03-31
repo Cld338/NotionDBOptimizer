@@ -6,22 +6,24 @@
 /**
  * 데이터베이스 전체 분석
  */
-function analyzeDatabase(records, properties, propertyNames) {
+function analyzeDatabase(records, properties, propertyNames, columnStats = {}, referenceChains = []) {
     const totalRecords = records.length;
-    const columnStats = {};
+    const analyzeColumnStats = columnStats && Object.keys(columnStats).length > 0 ? columnStats : {};
 
-    // 각 컬럼별 통계 계산
-    propertyNames.forEach(propKey => {
-        const property = properties[propKey];
-        const stats = _calculateColumnStats(property, propKey, records, totalRecords);
-        columnStats[propKey] = stats;
-    });
+    // 각 컬럼별 통계 계산 (columnStats가 제공되지 않은 경우만)
+    if (!analyzeColumnStats || Object.keys(analyzeColumnStats).length === 0) {
+        propertyNames.forEach(propKey => {
+            const property = properties[propKey];
+            const stats = _calculateColumnStats(property, propKey, records, totalRecords);
+            analyzeColumnStats[propKey] = stats;
+        });
+    }
 
     // 전체 완성도 계산
-    const overallCompleteness = _calculateOverallCompleteness(columnStats, propertyNames);
+    const overallCompleteness = _calculateOverallCompleteness(analyzeColumnStats, propertyNames);
 
-    // 성능 분석 리포트 생성
-    const performanceReport = generatePerformanceReport(records, properties, propertyNames, columnStats);
+    // 성능 분석 리포트 생성 (참조 체인 포함)
+    const performanceReport = generatePerformanceReport(records, properties, propertyNames, analyzeColumnStats, referenceChains);
     const performanceScore = performanceReport.summary.performanceScore;
 
     return {
@@ -30,11 +32,12 @@ function analyzeDatabase(records, properties, propertyNames) {
         overallCompleteness,
         performanceScore: performanceScore,
         qualityScore: calculateQualityScore(overallCompleteness, propertyNames.length, performanceScore),
-        columnStats,
+        columnStats: analyzeColumnStats,
         performanceAnalysis: {
             issues: performanceReport.performance,
             opportunities: performanceReport.opportunities,
-            limits: performanceReport.limits
+            limits: performanceReport.limits,
+            deepReferenceChains: performanceReport.deepReferenceChains
         }
     };
 }
@@ -445,12 +448,217 @@ function checkSizeLimits(records, properties, propertyNames) {
 }
 
 /**
+ * 깊은 참조 체인 분석
+ * 3단계 이상의 참조 경로를 추출하고 우선순위 지정
+ */
+function analyzeDeepReferenceChains(referenceChains = [], records = []) {
+    console.log('[analyzeDeepReferenceChains] 호출됨, 체인 개수:', referenceChains.length);
+    
+    const deepChains = [];
+
+    // 각 참조 체인 분석
+    referenceChains.forEach((chainItem, idx) => {
+        if (!chainItem.tree) {
+            console.log(`  [체인 ${idx}] tree 없음 - 건너뜀`);
+            return;
+        }
+
+        // 트리 깊이 계산 및 경로 추출
+        const pathAnalysis = _extractChainPath(chainItem.tree, chainItem.sourceDb, chainItem.sourceField, chainItem.sourceType);
+        
+        console.log(`  [체인 ${idx}] ${chainItem.sourceDb}.${chainItem.sourceField} - 깊이: ${pathAnalysis?.depth || 'N/A'}`);
+        
+        if (!pathAnalysis || pathAnalysis.depth < 3) {
+            console.log(`    → 필터링: 깊이 ${pathAnalysis?.depth || 'N/A'} < 3`);
+            return; // 3단계 미만은 제외
+        }
+
+        // 영향받는 레코드 수 계산 (소스 필드 기준)
+        const affectedRecords = records.filter(r => {
+            // 소스 DB의 필드가 비어있지 않으면 카운트
+            const record = r;
+            return record && typeof record === 'object';
+        }).length;
+
+        console.log(`    → 포함: 깊이 ${pathAnalysis.depth}, 영향 ${affectedRecords}건`);
+
+        // 심각도 계산
+        const severity = _calculateChainSeverity(pathAnalysis.depth, affectedRecords);
+
+        // 관련 데이터베이스 목록
+        const relatedDatabases = _extractDatabasesFromPath(pathAnalysis.path);
+
+        // 최적화 제안 생성
+        const optimizationTips = _generateChainOptimizationTips(pathAnalysis, affectedRecords);
+
+        deepChains.push({
+            depth: pathAnalysis.depth,
+            sourceDb: chainItem.sourceDb,
+            sourceField: chainItem.sourceField,
+            sourceDbId: chainItem.sourceDbId,
+            sourceType: chainItem.sourceType,
+            path: pathAnalysis.path,
+            affectedRecords: affectedRecords,
+            severity: severity,
+            relatedDatabases: relatedDatabases,
+            optimizationTips: optimizationTips,
+            _pathDetails: pathAnalysis // 디버깅용
+        });
+    });
+
+    // 정렬: 깊이 DESC → 영향도 DESC
+    deepChains.sort((a, b) => {
+        if (b.depth !== a.depth) {
+            return b.depth - a.depth; // 깊이 내림차순
+        }
+        return b.affectedRecords - a.affectedRecords; // 영향도 내림차순
+    });
+
+    console.log('[analyzeDeepReferenceChains] 반환:', deepChains.length, '개의 깊은 체인 발견');
+    return deepChains;
+}
+
+/**
+ * 트리에서 경로 추출 및 깊이 계산
+ */
+function _extractChainPath(treeNode, sourceDb, sourceField, sourceType) {
+    if (!treeNode) {
+        return null;
+    }
+
+    const path = [{
+        db: sourceDb,
+        field: sourceField,
+        type: sourceType
+    }];
+
+    let currentNode = treeNode;
+    let depth = 1;
+
+    // 트리를 따라 내려가며 경로 구성
+    while (currentNode && currentNode.children && currentNode.children.length > 0) {
+        const child = currentNode.children[0]; // 첫 번째 자식으로 진행
+        
+        path.push({
+            db: child.db,
+            field: child.fieldName,
+            type: child.type,
+            referencedProperty: child.referencedProperty
+        });
+
+        depth++;
+        currentNode = child;
+    }
+
+    return { path, depth };
+}
+
+/**
+ * 경로에서 데이터베이스 리스트 추출 (중복 제거)
+ */
+function _extractDatabasesFromPath(path) {
+    const dbSet = new Set();
+    path.forEach(node => {
+        if (node.db) {
+            dbSet.add(node.db);
+        }
+    });
+    return Array.from(dbSet);
+}
+
+/**
+ * 체인 심각도 계산
+ */
+function _calculateChainSeverity(depth, affectedRecords) {
+    // 깊이와 영향도 기반 심각도 결정
+    if (depth >= 5 && affectedRecords >= 100) {
+        return 'critical';
+    }
+    if (depth >= 5 || (depth >= 4 && affectedRecords >= 50)) {
+        return 'warning';
+    }
+    return 'info';
+}
+
+/**
+ * 체인별 최적화 제안 생성
+ */
+function _generateChainOptimizationTips(pathAnalysis, affectedRecords) {
+    const tips = [];
+    const depth = pathAnalysis.depth;
+
+    // 1. 깊이 기반 제안
+    if (depth >= 5) {
+        tips.push({
+            priority: 'high',
+            title: '깊은 formula/rollup 체인 단순화',
+            description: `이 체인은 ${depth}단계로 매우 깊습니다. 각 쿼리마다 여러 단계의 계산이 필요합니다.`,
+            action: '중간 계산 단계를 줄이거나 보조 필드로 분리하는 것을 검토하세요'
+        });
+    } else if (depth >= 4) {
+        tips.push({
+            priority: 'medium',
+            title: '참조 체인 최적화 검토',
+            description: `이 체인은 ${depth}단계입니다. 계산 복잡도를 낮출 수 있는지 확인하세요.`,
+            action: '불필요한 중간 참조 단계가 있는지 검토하세요'
+        });
+    }
+
+    // 2. 영향도 기반 제안
+    if (affectedRecords > 100) {
+        tips.push({
+            priority: 'high',
+            title: '대량 데이터에 영향을 주는 복잡한 계산',
+            description: `${affectedRecords}개의 레코드가 이 체인의 영향을 받습니다.`,
+            action: '성능 개선으로 전체 데이터베이스 응답 속도가 크게 향상될 수 있습니다'
+        });
+    }
+
+    // 3. 유형별 제안
+    const hasFormula = pathAnalysis.path.some(node => node.type === 'formula');
+    const hasRollup = pathAnalysis.path.some(node => node.type === 'rollup');
+
+    if (hasRollup && hasFormula) {
+        tips.push({
+            priority: 'high',
+            title: 'Formula와 Rollup 혼합 - 계산 순서 최적화',
+            description: 'Formula가 Rollup 결과를 참조하거나 그 반대인 경우, 계산 순서를 다시 검토하세요.',
+            action: 'Rollup은 상대적으로 빠르므로 가능하면 Rollup을 먼저 계산하도록 정렬하세요'
+        });
+    }
+
+    // 4. Rollup aggregation 함수 최적화
+    const rollupNodes = pathAnalysis.path.filter(node => node.type === 'rollup');
+    if (rollupNodes.length > 0) {
+        tips.push({
+            priority: 'medium',
+            title: 'Rollup 집계함수 성능 검토',
+            description: 'Rollup의 집계함수 (average, count 등)는 함수마다 성능이 다릅니다.',
+            action: 'average는 느리므로 sum을 사용하고 후속처리로 평균을 계산하는 것을 고려하세요'
+        });
+    }
+
+    // 5. 일반 최적화 제안
+    if (depth >= 3) {
+        tips.push({
+            priority: 'medium',
+            title: '참조 경로 분석 도구 활용',
+            description: '네트워크 시각화 탭에서 이 참조 경로를 상세히 분석할 수 있습니다.',
+            action: '"참조 경로 시각화"에서 이 체인을 클릭하여 전체 구조를 확인하세요'
+        });
+    }
+
+    return tips;
+}
+
+/**
  * 종합 성능 분석 보고서
  */
 function generatePerformanceReport(records, properties, propertyNames, columnStats = {}, referenceChains = []) {
     const performanceIssues = analyzePerformanceIssues(records, properties, propertyNames, referenceChains);
     const opportunities = evaluateOptimizationOpportunities(records, properties, propertyNames, columnStats);
     const sizeLimits = checkSizeLimits(records, properties, propertyNames);
+    const deepReferenceChains = analyzeDeepReferenceChains(referenceChains, records);
 
     return {
         timestamp: new Date().toISOString(),
@@ -459,11 +667,13 @@ function generatePerformanceReport(records, properties, propertyNames, columnSta
             performanceSeverity: performanceIssues.severity,
             sizeStatus: sizeLimits.status,
             optimizationOpportunitiesCount: opportunities.length,
-            factorsCount: performanceIssues.factors.length
+            factorsCount: performanceIssues.factors.length,
+            deepChainsCount: deepReferenceChains.length
         },
         performance: performanceIssues,
         opportunities: opportunities,
-        limits: sizeLimits
+        limits: sizeLimits,
+        deepReferenceChains: deepReferenceChains
     };
 }
 
@@ -473,5 +683,6 @@ module.exports = {
     analyzePerformanceIssues,
     evaluateOptimizationOpportunities,
     checkSizeLimits,
-    generatePerformanceReport
+    generatePerformanceReport,
+    analyzeDeepReferenceChains
 };

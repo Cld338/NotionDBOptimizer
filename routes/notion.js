@@ -178,12 +178,13 @@ router.get('/page/:pageId/blocks', async (req, res) => {
 
 /**
  * GET /api/notion/analyze/:databaseId
- * 데이터베이스 분석 (완성도, 품질 점수 등)
+ * 데이터베이스 분석 (완성도, 품질 점수 등) + 참조 체인 분석
  */
 router.get('/analyze/:databaseId', async (req, res) => {
     try {
         const { databaseId } = req.params;
         const accessToken = req.session.user.accessToken;
+        const debugMode = req.query.debug === 'true';
 
         // 캐시 확인
         const cacheKey = `analysis:${databaseId}`;
@@ -200,8 +201,31 @@ router.get('/analyze/:databaseId', async (req, res) => {
         // 모든 레코드 조회
         const records = await getAllDatabaseRecords(databaseId, accessToken);
 
-        // 분석 실행
-        const analysis = analyzeDatabase(records, properties, propertyNames);
+        // 참조 체인 분석 (깊은 참조 경로 감지용)
+        let referenceChains = [];
+        try {
+            if (debugMode) {
+                console.log('[분석 API] 네트워크 분석 시작...');
+            }
+            const networkData = await _buildDatabaseNetwork(databaseId, accessToken, debugMode);
+            if (debugMode) {
+                console.log('[분석 API] 네트워크 분석 완료, dbPropertiesMap 크기:', networkData.dbPropertiesMap.size);
+            }
+            
+            referenceChains = _analyzeReferenceChains(networkData.dbPropertiesMap, debugMode);
+            if (debugMode || referenceChains.length > 0) {
+                console.log('[분석 API] 참조 체인 분석 완료:', referenceChains.length, '개');
+            }
+        } catch (chainError) {
+            console.error('[분석 API] 참조 체인 분석 오류:', chainError.message);
+            if (debugMode) {
+                console.error('[분석 API] 오류 스택:', chainError.stack);
+            }
+            // 참조 체인 분석 오류는 무시하고 기본 분석 계속 진행
+        }
+
+        // 분석 실행 (참조 체인 포함)
+        const analysis = analyzeDatabase(records, properties, propertyNames, {}, referenceChains);
 
         // 캐시에 저장 (10분)
         await setCachedData(cacheKey, analysis, 600);
@@ -215,12 +239,13 @@ router.get('/analyze/:databaseId', async (req, res) => {
 
 /**
  * POST /api/analyze/:databaseId/refresh
- * 분석 캐시 초기화 및 재생성
+ * 분석 캐시 초기화 및 재생성 + 참조 체인 분석
  */
 router.post('/analyze/:databaseId/refresh', async (req, res) => {
     try {
         const { databaseId } = req.params;
         const accessToken = req.session.user.accessToken;
+        const debugMode = req.query.debug === 'true';
 
         const cacheKey = `analysis:${databaseId}`;
         await deleteCachedData(cacheKey);
@@ -233,8 +258,23 @@ router.post('/analyze/:databaseId/refresh', async (req, res) => {
         // 모든 레코드 조회
         const records = await getAllDatabaseRecords(databaseId, accessToken);
 
-        // 분석 실행
-        const analysis = analyzeDatabase(records, properties, propertyNames);
+        // 참조 체인 분석 (깊은 참조 경로 감지용)
+        let referenceChains = [];
+        try {
+            const networkData = await _buildDatabaseNetwork(databaseId, accessToken, debugMode);
+            referenceChains = _analyzeReferenceChains(networkData.dbPropertiesMap, debugMode);
+            if (debugMode) {
+                console.log('[분석 API Refresh] 참조 체인 분석 완료:', referenceChains.length, '개');
+            }
+        } catch (chainError) {
+            if (debugMode) {
+                console.log('[분석 API Refresh] 참조 체인 분석 중 오류 (계속 진행):', chainError.message);
+            }
+            // 참조 체인 분석 오류는 무시하고 기본 분석 계속 진행
+        }
+
+        // 분석 실행 (참조 체인 포함)
+        const analysis = analyzeDatabase(records, properties, propertyNames, {}, referenceChains);
 
         // 캐시에 저장 (10분)
         await setCachedData(cacheKey, analysis, 600);
