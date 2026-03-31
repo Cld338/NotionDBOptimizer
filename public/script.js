@@ -1530,25 +1530,23 @@ const app = {
         const sourceTypeDisplay = this.getPropertyTypeDisplay(safeSourceType);
         
         let html = `
-            <div class="tree-root-item">
-                <div class="tree-root-header">
-                    <span class="tree-toggle" title="펼치기/접기">▼</span>
-                    <span class="tree-root-icon" style="font-size: 1.1rem; margin-right: 4px;">${sourceTypeDisplay.icon}</span>
-                    <span class="tree-root-db" style="font-weight: 600;">[${this.escapeHtml(sourceDb)}]</span>
-                    <span class="data-field-name">${this.escapeHtml(sourceField)}</span>
-                    <span class="tree-root-type" style="font-size: 0.75rem; color: #666; margin-left: auto;">${sourceTypeDisplay.label.toUpperCase()}</span>
+            <div class="tree-node-item">
+                <div class="tree-node-label">
+                    <span class="tree-node-type ${safeSourceType}">${sourceTypeDisplay.icon} ${sourceTypeDisplay.label.toUpperCase()}</span>
+                    <span class="tree-node-db">[${this.escapeHtml(sourceDb)}]</span>
+                    <span class="tree-node-field">${this.escapeHtml(sourceField)}</span>
                 </div>
-                <div class="tree-node-container">
         `;
 
         if (treeRoot.children && treeRoot.children.length > 0) {
+            html += `<div class="tree-node-container">`;
             treeRoot.children.forEach((child, idx) => {
                 html += this._renderIndentedTreeNode(child, 1, idx === treeRoot.children.length - 1, treeRoot.children.length);
             });
+            html += `</div>`;
         }
 
         html += `
-                </div>
             </div>
         `;
 
