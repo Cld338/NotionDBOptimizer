@@ -18,27 +18,27 @@ const app = {
 
     // Notion 필드 타입별 아이콘 및 표시 이름
     propertyTypeMap: {
-        'title': { icon: '📝', label: 'Title' },
-        'rich_text': { icon: '📄', label: 'Rich Text' },
-        'number': { icon: '🔢', label: 'Number' },
-        'select': { icon: '📌', label: 'Select' },
-        'multi_select': { icon: '🏷️', label: 'Multi-Select' },
-        'date': { icon: '📅', label: 'Date' },
-        'checkbox': { icon: '✓', label: 'Checkbox' },
-        'email': { icon: '📧', label: 'Email' },
-        'phone_number': { icon: '📞', label: 'Phone' },
+        'title': { icon: '📝', label: '제목' },
+        'rich_text': { icon: '📄', label: '텍스트' },
+        'number': { icon: '🔢', label: '숫자' },
+        'select': { icon: '📌', label: '선택' },
+        'multi_select': { icon: '🏷️', label: '다중 선택' },
+        'date': { icon: '📅', label: '날짜' },
+        'checkbox': { icon: '✓', label: '체크박스' },
+        'email': { icon: '📧', label: '이메일' },
+        'phone_number': { icon: '📞', label: '전화번호' },
         'url': { icon: '🔗', label: 'URL' },
-        'created_time': { icon: '⏰', label: 'Created Time' },
-        'last_edited_time': { icon: '⏱️', label: 'Last Edited' },
-        'created_by': { icon: '👤', label: 'Created By' },
-        'last_edited_by': { icon: '👤', label: 'Last Edited By' },
-        'people': { icon: '👥', label: 'People' },
-        'relation': { icon: '🔗', label: 'Relation' },
-        'rollup': { icon: '🔄', label: 'Rollup' },
-        'formula': { icon: '🧮', label: 'Formula' },
-        'files': { icon: '📁', label: 'Files' },
-        'button': { icon: '🔘', label: 'Button' },
-        'unique_id': { icon: '#️⃣', label: 'Unique ID' }
+        'created_time': { icon: '⏰', label: '생성 일시' },
+        'last_edited_time': { icon: '⏱️', label: '최종 편집 일시' },
+        'created_by': { icon: '👤', label: '생성자' },
+        'last_edited_by': { icon: '👤', label: '최종 편집자' },
+        'people': { icon: '👥', label: '사람' },
+        'relation': { icon: '🔗', label: '관계형' },
+        'rollup': { icon: '🔄', label: '롤업' },
+        'formula': { icon: '🧮', label: '수식' },
+        'files': { icon: '📁', label: '파일' },
+        'button': { icon: '🔘', label: '버튼' },
+        'unique_id': { icon: '#️⃣', label: 'ID' }
     },
 
     /**
@@ -670,7 +670,7 @@ const app = {
                 <div class="column-row">
                     <div class="column-info">
                         <div class="column-name">
-                            ${this.escapeHtml(stats.name)}
+                            <span class="data-field-name">${this.escapeHtml(stats.name)}</span>
                         </div>
                         <div class="column-type">${typeDisplay}</div>
                     </div>
@@ -1535,7 +1535,7 @@ const app = {
                     <span class="tree-toggle" title="펼치기/접기">▼</span>
                     <span class="tree-root-icon" style="font-size: 1.1rem; margin-right: 4px;">${sourceTypeDisplay.icon}</span>
                     <span class="tree-root-db" style="font-weight: 600;">[${this.escapeHtml(sourceDb)}]</span>
-                    <span class="tree-root-field" style="font-family: 'Monaco', 'Menlo', monospace; background: rgba(52, 152, 219, 0.1); padding: 2px 6px; border-radius: 3px; font-size: 0.9rem;">${this.escapeHtml(sourceField)}</span>
+                    <span class="data-field-name">${this.escapeHtml(sourceField)}</span>
                     <span class="tree-root-type" style="font-size: 0.75rem; color: #666; margin-left: auto;">${sourceTypeDisplay.label.toUpperCase()}</span>
                 </div>
                 <div class="tree-node-container">

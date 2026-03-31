@@ -54,6 +54,7 @@ th {
     padding: 16px;
     text-align: left;
     font-weight: 600;
+    font-family: var(--font-code);
     color: var(--color-text-light);
     border-bottom: 2px solid var(--color-border);
     font-size: 0.95rem;
@@ -205,6 +206,7 @@ th {
     padding: var(--spacing-md);
     text-align: left;
     font-weight: 700;
+    font-family: var(--font-code);
     color: var(--color-accent);
     font-size: 0.9rem;
     text-transform: uppercase;
