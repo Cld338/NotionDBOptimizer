@@ -614,7 +614,6 @@
 .zero-error-state-icon {
     font-size: 4rem;
     margin-bottom: var(--spacing-md);
-    animation: float 3s ease-in-out infinite;
 }
 
 .zero-error-state-title {
@@ -718,7 +717,4 @@
     color: var(--color-text-dark);
 }
 
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
+
