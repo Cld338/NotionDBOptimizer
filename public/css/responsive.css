@@ -137,7 +137,6 @@
         border-bottom: 1px solid var(--color-divider);
         padding-right: 0;
         padding-bottom: var(--spacing-md);
-        overflow-y: visible;
     }
 
     .columns-right {

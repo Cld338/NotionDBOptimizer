@@ -22,7 +22,7 @@
     transition: all var(--transition-fast);
     color: var(--color-text-light);
     position: relative;
-    z-index: 10;
+    z-index: var(--z-dropdown);
 }
 
 .action-btn:hover,
@@ -111,7 +111,7 @@
     opacity: 0;
     pointer-events: none;
     transition: opacity var(--transition-fast);
-    z-index: 10;
+    z-index: var(--z-dropdown);
 }
 
 .action-btn:hover[title]::after {
@@ -133,7 +133,7 @@
     align-items: center;
     gap: var(--spacing-xs);
     position: relative;
-    z-index: 10;
+    z-index: var(--z-dropdown);
 }
 
 /* 경고/이슈 항목 - 액션 버튼 배치 */

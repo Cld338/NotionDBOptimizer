@@ -64,8 +64,6 @@
 
 .detail-title-section {
     margin-top: var(--spacing-md);
-    overflow: visible;
-    position: relative;
 }
 
 .detail-title {
@@ -91,8 +89,6 @@
 .tab-content {
     display: none;
     animation: fadeIn var(--transition-normal);
-    overflow: visible;
-    position: relative;
 }
 
 .tab-content.active {
@@ -104,10 +100,8 @@
     background: var(--color-surface);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    overflow: visible;
     border: 1px solid rgba(230, 144, 70, 0.05);
     transition: all var(--transition-normal);
-    position: relative;
 }
 
 .card:hover {
@@ -119,8 +113,6 @@
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--color-divider);
     background: linear-gradient(135deg, var(--color-secondary) 0%, transparent 100%);
-    overflow: visible;
-    position: relative;
 }
 
 .card-header h3 {
@@ -131,8 +123,6 @@
 
 .card-content {
     padding: var(--spacing-lg);
-    overflow: visible;
-    position: relative;
 }
 
 /* ============ 테이블 상세 ============ */

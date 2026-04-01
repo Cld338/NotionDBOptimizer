@@ -14,7 +14,7 @@
     position: relative;
     width: 100%;
     max-width: 440px;
-    z-index: 10;
+    z-index: var(--z-modal);
 }
 
 .login-card {
@@ -24,7 +24,7 @@
     padding: 40px;
     box-shadow: var(--shadow-md);
     position: relative;
-    z-index: 2;
+    z-index: var(--z-base);
 }
 
 .login-brand {
