@@ -171,13 +171,16 @@ describe('getDatabaseStructure', () => {
         const callArgs = axios.get.mock.calls[0];
         const headers = callArgs[1].headers;
 
-        expect(headers.Authorization).toBe(`Bearer ${secure-token}`);
+        expect(headers.Authorization).toBe(`Bearer ${token}`);
     });
 
     test('다양한 데이터베이스 ID 지원', async () => {
-        axios.get.mockResolvedValueOnce({ data: {} });
-
         const dbIds = ['db-uuid-001', 'database-123', 'a1b2c3d4'];
+        
+        // 각 호출마다 mock 응답 설정
+        dbIds.forEach(() => {
+            axios.get.mockResolvedValueOnce({ data: {} });
+        });
 
         for (const dbId of dbIds) {
             await getDatabaseStructure(dbId, 'token');
@@ -290,7 +293,7 @@ describe('queryDatabase', () => {
         const callArgs = axios.post.mock.calls[0];
         const headers = callArgs[2].headers;
 
-        expect(headers.Authorization).toBe(`Bearer ${query-token}`);
+        expect(headers.Authorization).toBe(`Bearer ${token}`);
     });
 
     test('pagination 응답 처리', async () => {
@@ -355,7 +358,7 @@ describe('getPageBlocks', () => {
         const callArgs = axios.get.mock.calls[0];
         const headers = callArgs[1].headers;
 
-        expect(headers.Authorization).toBe(`Bearer ${block-token}`);
+        expect(headers.Authorization).toBe(`Bearer ${token}`);
     });
 
     test('빈 블록 목록 처리', async () => {
@@ -384,12 +387,14 @@ describe('getPageBlocks', () => {
     });
 
     test('다양한 페이지 ID 지원', async () => {
-        axios.get.mockResolvedValueOnce({ data: { results: [] } });
-
         const pageIds = ['page-uuid-001', 'p-123', 'a1b2c3d4e5f6'];
+        
+        // 각 호출마다 mock 응답 설정
+        pageIds.forEach(() => {
+            axios.get.mockResolvedValueOnce({ data: { results: [] } });
+        });
 
         for (const pageId of pageIds) {
-            axios.get.mockResolvedValueOnce({ data: { results: [] } });
             await getPageBlocks(pageId, 'token');
         }
 
