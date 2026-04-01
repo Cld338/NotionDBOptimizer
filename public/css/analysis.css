@@ -389,6 +389,134 @@
 }
 
 /* ============ 깊은 참조 경로 분석 섹션 ============ */
+
+/* ★ 요약 대시보드 (Summary Metrics) */
+.deep-chains-metrics {
+    margin: 0 0 var(--spacing-lg) 0;
+    padding: var(--spacing-lg);
+    background: linear-gradient(135deg, rgba(230, 144, 70, 0.08) 0%, rgba(230, 144, 70, 0.03) 100%);
+    border: 2px solid rgba(230, 144, 70, 0.2);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 2px 12px rgba(230, 144, 70, 0.08);
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--spacing-lg);
+}
+
+.metric-card {
+    background: linear-gradient(135deg, var(--color-surface) 0%, rgba(255, 255, 255, 0.5) 100%);
+    border: 1.5px solid var(--color-divider);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg) var(--spacing-md);
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.metric-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.metric-card:hover::before {
+    left: 100%;
+}
+
+.metric-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 8px 24px rgba(230, 144, 70, 0.15);
+    transform: translateY(-4px);
+    background: linear-gradient(135deg, rgba(230, 144, 70, 0.06) 0%, rgba(255, 255, 255, 0.8) 100%);
+}
+
+.metric-card.critical {
+    /* 일반 카드와 동일한 기본 스타일 유지 */
+}
+
+.metric-card.critical:hover {
+    border-color: var(--color-primary);
+    background: linear-gradient(135deg, rgba(230, 144, 70, 0.12) 0%, rgba(255, 255, 255, 0.6) 100%);
+    box-shadow: 0 12px 32px rgba(230, 144, 70, 0.2);
+    transform: translateY(-4px);
+}
+
+.metric-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--color-text-muted);
+    font-weight: 700;
+    margin-bottom: var(--spacing-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.metric-value {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: var(--spacing-sm) 0;
+    letter-spacing: -0.5px;
+}
+
+.metric-value.severity-badge {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    font-size: 1.3rem;
+    font-weight: 700;
+    background: none;
+    -webkit-text-fill-color: unset;
+}
+
+.metric-value.severity-badge span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.metric-desc {
+    font-size: 0.7rem;
+    color: var(--color-text-light);
+    font-weight: 500;
+    margin-top: var(--spacing-xs);
+}
+
+@media (max-width: 1024px) {
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-value {
+        font-size: 1.5rem;
+    }
+}
+
 .deep-chains-section {
     margin: 0;
     padding: 0;
@@ -397,21 +525,24 @@
 .deep-chains-list {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
+    gap: var(--spacing-lg);
 }
 
 /* 깊은 참조 경로 아이템 */
 .deep-chain-item {
-    background: transparent;
-    border: 1px solid var(--color-divider);
-    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--color-surface) 0%, rgba(255, 255, 255, 0.4) 100%);
+    border: 1.5px solid rgba(210, 196, 178, 0.3);
+    border-radius: var(--radius-lg);
     overflow: hidden;
-    transition: all var(--transition-normal);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .deep-chain-item:hover {
     border-color: var(--color-primary);
-    background: var(--color-secondary);
+    background: linear-gradient(135deg, rgba(230, 144, 70, 0.05) 0%, rgba(255, 255, 255, 0.7) 100%);
+    box-shadow: 0 8px 20px rgba(230, 144, 70, 0.12);
+    transform: translateY(-3px);
 }
 
 /* 헤더 */
@@ -420,14 +551,15 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--spacing-md);
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg) var(--spacing-lg);
     cursor: pointer;
     user-select: none;
-    transition: background-color var(--transition-fast);
+    transition: all 0.2s ease;
+    background: linear-gradient(90deg, rgba(230, 144, 70, 0.01) 0%, transparent 100%);
 }
 
 .deep-chain-header:hover {
-    background: var(--color-hover);
+    background: linear-gradient(90deg, rgba(230, 144, 70, 0.03) 0%, transparent 100%);
 }
 
 .deep-chain-header-left {
@@ -442,10 +574,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.8rem;
-    transition: transform var(--transition-fast);
+    font-size: 1rem;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     flex-shrink: 0;
-    width: 20px;
+    width: 28px;
+    height: 28px;
+    color: var(--color-primary);
+    font-weight: 700;
+    background: rgba(230, 144, 70, 0.08);
+    border-radius: 50%;
+    border: 1px solid rgba(230, 144, 70, 0.15);
+}
+
+.deep-chain-toggle:hover {
+    background: rgba(230, 144, 70, 0.15);
 }
 
 .deep-chain-toggle.expanded {
@@ -456,14 +598,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 700;
     color: white;
     white-space: nowrap;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    background: linear-gradient(135deg, var(--color-primary), #d97706);
 }
 
 .deep-chain-path-text {
@@ -488,10 +631,14 @@
     font-size: 0.85rem;
     color: var(--color-text-light);
     white-space: nowrap;
+    background: rgba(210, 196, 178, 0.1);
+    padding: 4px 10px;
+    border-radius: 12px;
+    border: 1px solid rgba(210, 196, 178, 0.2);
 }
 
 .deep-chain-info strong {
-    color: var(--color-accent);
+    color: var(--color-primary);
     font-weight: 700;
 }
 
@@ -499,20 +646,43 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    border-radius: 20px;
     font-size: 0.75rem;
-    font-weight: 600;
+    font-weight: 700;
     color: white;
     white-space: nowrap;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-size: 0.8rem;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 20px;
+    border: 1px solid rgba(230, 144, 70, 0.3);
+    background: rgba(230, 144, 70, 0.08);
+    color: var(--color-primary);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background: rgba(230, 144, 70, 0.2);
+    border-color: var(--color-primary);
+    transform: scale(1.1);
 }
 
 /* 컨텐츠 영역 */
 .deep-chain-content {
-    background: var(--color-secondary);
-    border-top: 1px solid var(--color-divider);
-    padding: var(--spacing-md);
+    background: linear-gradient(135deg, rgba(230, 144, 70, 0.02) 0%, rgba(255, 255, 255, 0.2) 100%);
+    border-top: 2px solid rgba(230, 144, 70, 0.1);
+    padding: var(--spacing-lg);
     animation: slideDown var(--transition-normal) ease;
 }
 

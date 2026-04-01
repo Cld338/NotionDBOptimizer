@@ -37,7 +37,8 @@ function analyzeDatabase(records, properties, propertyNames, columnStats = {}, r
             issues: performanceReport.performance,
             opportunities: performanceReport.opportunities,
             limits: performanceReport.limits,
-            deepReferenceChains: performanceReport.deepReferenceChains
+            deepReferenceChains: performanceReport.deepReferenceChains,
+            deepChainsMetrics: performanceReport.deepChainsMetrics  // ★ 추가
         }
     };
 }
@@ -714,6 +715,52 @@ function _generateChainOptimizationTips(pathAnalysis, affectedRecords) {
 }
 
 /**
+ * 깊은 참조 체인의 요약 통계 생성
+ * ★ 새로 추가: 뷰 상단에 표시할 핵심 지표들
+ */
+function generateDeepChainsMetrics(deepChains = []) {
+    if (!deepChains || deepChains.length === 0) {
+        return {
+            totalChains: 0,
+            maxDepth: 0,
+            totalAffectedRecords: 0,
+            criticalCount: 0,
+            warningCount: 0,
+            infoCount: 0,
+            avgDepth: 0,
+            affectedDatabases: []
+        };
+    }
+
+    const maxDepth = Math.max(...deepChains.map(c => c.depth));
+    const totalAffectedRecords = deepChains.reduce((sum, c) => sum + c.affectedRecords, 0);
+    const criticalCount = deepChains.filter(c => c.severity === 'critical').length;
+    const warningCount = deepChains.filter(c => c.severity === 'warning').length;
+    const infoCount = deepChains.filter(c => c.severity === 'info').length;
+    const avgDepth = Math.round(deepChains.reduce((sum, c) => sum + c.depth, 0) / deepChains.length * 10) / 10;
+
+    // 영향받는 dataBase 목록 수집 (중복 제거)
+    const affectedDbSet = new Set();
+    deepChains.forEach(chain => {
+        if (chain.relatedDatabases) {
+            chain.relatedDatabases.forEach(db => affectedDbSet.add(db));
+        }
+    });
+
+    return {
+        totalChains: deepChains.length,
+        maxDepth: maxDepth,
+        totalAffectedRecords: totalAffectedRecords,
+        avgDepth: avgDepth,
+        criticalCount: criticalCount,
+        warningCount: warningCount,
+        infoCount: infoCount,
+        affectedDatabases: Array.from(affectedDbSet),
+        affectedDatabasesCount: affectedDbSet.size
+    };
+}
+
+/**
  * 종합 성능 분석 보고서
  */
 function generatePerformanceReport(records, properties, propertyNames, columnStats = {}, referenceChains = []) {
@@ -721,6 +768,7 @@ function generatePerformanceReport(records, properties, propertyNames, columnSta
     const opportunities = evaluateOptimizationOpportunities(records, properties, propertyNames, columnStats);
     const sizeLimits = checkSizeLimits(records, properties, propertyNames);
     const deepReferenceChains = analyzeDeepReferenceChains(referenceChains, records);
+    const deepChainsMetrics = generateDeepChainsMetrics(deepReferenceChains);  // ★ 요약 통계 생성
 
     return {
         timestamp: new Date().toISOString(),
@@ -735,7 +783,8 @@ function generatePerformanceReport(records, properties, propertyNames, columnSta
         performance: performanceIssues,
         opportunities: opportunities,
         limits: sizeLimits,
-        deepReferenceChains: deepReferenceChains
+        deepReferenceChains: deepReferenceChains,
+        deepChainsMetrics: deepChainsMetrics  // ★ 요약 통계 추가
     };
 }
 
@@ -746,5 +795,6 @@ module.exports = {
     evaluateOptimizationOpportunities,
     checkSizeLimits,
     generatePerformanceReport,
-    analyzeDeepReferenceChains
+    analyzeDeepReferenceChains,
+    generateDeepChainsMetrics  // ★ 새로 추가
 };
