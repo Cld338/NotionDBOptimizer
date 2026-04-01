@@ -1098,21 +1098,17 @@ const app = {
 
         let html = `
             <div class="deep-chain-content-inner">
-                <!-- 🔀 연관 데이터베이스 -->
+                <!-- 🔀 연관 데이터베이스 (참조 탭과 동일한 방식 사용) -->
                 <div class="chain-section">
                     <h5 class="chain-section-title">🔀 연관 데이터베이스 (${chain.relatedDatabases.length}개)</h5>
                     <div class="chain-section-content">
-                        <div class="chain-databases-list">
-                            ${chain.path.map((node, idx) => `
-                                <div class="chain-db-node" style="margin-left: ${idx * 16}px;">
-                                    <span class="chain-db-icon">${idx === 0 ? '📍' : idx === chain.path.length - 1 ? '🎯' : '→'}</span>
-                                    <span class="chain-db-name" title="${this.escapeHtml(node.db)}.${this.escapeHtml(node.field)}">${this.escapeHtml(node.db)}</span>
-                                    <span class="chain-field-type" style="background: ${this._getChainTypeColor(node.type)};">
-                                        ${this.getPropertyTypeDisplay(node.type).icon} ${node.type.toUpperCase()}
-                                    </span>
-                                    <span class="chain-field-name">${this.escapeHtml(node.field)}</span>
-                                </div>
-                            `).join('')}
+                        <div class="indented-tree-root" style="background: none; border: none; padding: 0;">
+                            ${chain.tree ? this._renderReferenceChainAsIndentedTree(
+                                chain.sourceDb,
+                                chain.sourceField,
+                                chain.sourceType,
+                                chain.tree
+                            ) : `<p style="color: var(--color-text-muted); font-size: 0.9rem;">트리 정보를 불러올 수 없습니다</p>`}
                         </div>
                     </div>
                 </div>

@@ -468,6 +468,14 @@ function analyzeDeepReferenceChains(referenceChains = [], records = []) {
         
         console.log(`  [체인 ${idx}] ${chainItem.sourceDb}.${chainItem.sourceField} - 깊이: ${pathAnalysis?.depth || 'N/A'}`);
         
+        // ★ 추출된 경로의 모든 노드 로깅
+        if (pathAnalysis?.path) {
+            console.log(`    📍 경로 노드 (${pathAnalysis.path.length}개):`);
+            pathAnalysis.path.forEach((node, nodeIdx) => {
+                console.log(`       ${nodeIdx + 1}. ${node.db} > ${node.field} (${node.type})`);
+            });
+        }
+        
         if (!pathAnalysis || pathAnalysis.depth < 3) {
             console.log(`    → 필터링: 깊이 ${pathAnalysis?.depth || 'N/A'} < 3`);
             return; // 3단계 미만은 제외
@@ -498,6 +506,7 @@ function analyzeDeepReferenceChains(referenceChains = [], records = []) {
             sourceDbId: chainItem.sourceDbId,
             sourceType: chainItem.sourceType,
             path: pathAnalysis.path,
+            tree: chainItem.tree,  // ★ 원본 트리 정보 추가 (렌더링용)
             affectedRecords: affectedRecords,
             severity: severity,
             relatedDatabases: relatedDatabases,
@@ -514,18 +523,23 @@ function analyzeDeepReferenceChains(referenceChains = [], records = []) {
         return b.affectedRecords - a.affectedRecords; // 영향도 내림차순
     });
 
-    console.log('[analyzeDeepReferenceChains] 반환:', deepChains.length, '개의 깊은 체인 발견');
-    return deepChains;
+    // ★ 하위 경로 필터링: 이미 다른 체인에 포함된 노드는 제외
+    const filteredDeepChains = _filterIncludedChains(deepChains);
+
+    console.log('[analyzeDeepReferenceChains] 반환:', filteredDeepChains.length, '개의 깊은 체인 발견 (필터링 후)');
+    return filteredDeepChains;
 }
 
 /**
  * 트리에서 경로 추출 및 깊이 계산
+ * ★ 개선: 첫 번째 분기를 따라 가장 깊은 경로 추출 (중복 제거)
  */
 function _extractChainPath(treeNode, sourceDb, sourceField, sourceType) {
     if (!treeNode) {
         return null;
     }
 
+    // 초기 경로: 소스 필드
     const path = [{
         db: sourceDb,
         field: sourceField,
@@ -535,9 +549,9 @@ function _extractChainPath(treeNode, sourceDb, sourceField, sourceType) {
     let currentNode = treeNode;
     let depth = 1;
 
-    // 트리를 따라 내려가며 경로 구성
+    // 트리를 따라 내려가며 가장 깊은 경로 구성
     while (currentNode && currentNode.children && currentNode.children.length > 0) {
-        const child = currentNode.children[0]; // 첫 번째 자식으로 진행
+        const child = currentNode.children[0]; // 첫 번째 분기 선택
         
         path.push({
             db: child.db,
@@ -550,7 +564,11 @@ function _extractChainPath(treeNode, sourceDb, sourceField, sourceType) {
         currentNode = child;
     }
 
-    return { path, depth };
+    return {
+        path: path,
+        depth: depth,
+        chainLength: depth // sourceDb 포함 개수
+    };
 }
 
 /**
@@ -565,6 +583,54 @@ function _extractDatabasesFromPath(path) {
     });
     return Array.from(dbSet);
 }
+
+/**
+ * 깊은 참조 체인에서 하위 경로 필터링
+ * A - B - C - D가 있으면 B - C - D는 제외
+ * ★ path 배열의 시작 노드(sourceDb|sourceField)를 추적하여 필터링
+ */
+function _filterIncludedChains(deepChains) {
+    // 1. 모든 체인의 path에서 sourceDb|sourceField를 제외한 모든 노드 수집
+    const allIncludedStartNodes = new Set();
+    
+    deepChains.forEach(chain => {
+        // path의 첫 번째 노드를 제외한 나머지 노드들을 "포함된 시작점"으로 수집
+        if (chain.path && chain.path.length > 1) {
+            for (let i = 1; i < chain.path.length; i++) {
+                const node = chain.path[i];
+                const nodeKey = `${node.db}|${node.field}`;
+                allIncludedStartNodes.add(nodeKey);
+            }
+        }
+    });
+
+    console.log(`[_filterIncludedChains] 수집된 포함 노드: ${allIncludedStartNodes.size}개`);
+    if (allIncludedStartNodes.size > 0) {
+        console.log('  포함된 노드:');
+        Array.from(allIncludedStartNodes).slice(0, 3).forEach(nodeKey => {
+            console.log(`    - ${nodeKey}`);
+        });
+        if (allIncludedStartNodes.size > 3) {
+            console.log(`    ... (${allIncludedStartNodes.size - 3}개 더)`);
+        }
+    }
+
+    // 2. sourceField이 다른 체인의 경로에 포함된 체인은 제외
+    const filteredChains = deepChains.filter(chain => {
+        const nodeKey = `${chain.sourceDb}|${chain.sourceField}`;
+        const isIncluded = allIncludedStartNodes.has(nodeKey);
+        if (isIncluded) {
+            console.log(`  ✗ 제외: ${chain.sourceDb}.${chain.sourceField} (다른 체인에 포함됨)`);
+        }
+        return !isIncluded;
+    });
+
+    console.log(`[_filterIncludedChains] ${deepChains.length}개 → ${filteredChains.length}개 (${deepChains.length - filteredChains.length}개 제외됨)`);
+
+    return filteredChains;
+}
+
+
 
 /**
  * 체인 심각도 계산
@@ -583,68 +649,64 @@ function _calculateChainSeverity(depth, affectedRecords) {
 /**
  * 체인별 최적화 제안 생성
  */
+/**
+ * 체인별 최적화 제안 생성 (Notion 공식 문서 성능 가이드 반영)
+ */
 function _generateChainOptimizationTips(pathAnalysis, affectedRecords) {
     const tips = [];
     const depth = pathAnalysis.depth;
-
-    // 1. 깊이 기반 제안
-    if (depth >= 5) {
-        tips.push({
-            priority: 'high',
-            title: '깊은 formula/rollup 체인 단순화',
-            description: `이 체인은 ${depth}단계로 매우 깊습니다. 각 쿼리마다 여러 단계의 계산이 필요합니다.`,
-            action: '중간 계산 단계를 줄이거나 보조 필드로 분리하는 것을 검토하세요'
-        });
-    } else if (depth >= 4) {
-        tips.push({
-            priority: 'medium',
-            title: '참조 체인 최적화 검토',
-            description: `이 체인은 ${depth}단계입니다. 계산 복잡도를 낮출 수 있는지 확인하세요.`,
-            action: '불필요한 중간 참조 단계가 있는지 검토하세요'
-        });
-    }
-
-    // 2. 영향도 기반 제안
-    if (affectedRecords > 100) {
-        tips.push({
-            priority: 'high',
-            title: '대량 데이터에 영향을 주는 복잡한 계산',
-            description: `${affectedRecords}개의 레코드가 이 체인의 영향을 받습니다.`,
-            action: '성능 개선으로 전체 데이터베이스 응답 속도가 크게 향상될 수 있습니다'
-        });
-    }
-
-    // 3. 유형별 제안
+    
+    // 체인 내 특정 유형 포함 여부 확인
     const hasFormula = pathAnalysis.path.some(node => node.type === 'formula');
     const hasRollup = pathAnalysis.path.some(node => node.type === 'rollup');
 
-    if (hasRollup && hasFormula) {
+    // 1. 복잡한 참조 체인 단순화 (Avoid complex reference chains)
+    if (depth >= 4) {
         tips.push({
             priority: 'high',
-            title: 'Formula와 Rollup 혼합 - 계산 순서 최적화',
-            description: 'Formula가 Rollup 결과를 참조하거나 그 반대인 경우, 계산 순서를 다시 검토하세요.',
-            action: 'Rollup은 상대적으로 빠르므로 가능하면 Rollup을 먼저 계산하도록 정렬하세요'
+            title: '복잡한 참조 단순화',
+            description: `현재 참조는 ${depth}단계로 구성되어 있습니다. Notion은 수식이 다른 수식이나 롤업을 중첩 참조할수록 데이터베이스 로딩 속도가 현저히 느려진다고 경고합니다.`,
+            action: '불필요한 중간 수식/롤업 단계를 제거하고, 참조 구조를 최대한 단순화하세요.'
         });
     }
 
-    // 4. Rollup aggregation 함수 최적화
-    const rollupNodes = pathAnalysis.path.filter(node => node.type === 'rollup');
-    if (rollupNodes.length > 0) {
+    // 2. 수식/롤업 필터링 및 정렬 최소화 (Minimize filters and sorts on formulas/rollups)
+    if (hasFormula || hasRollup) {
+        tips.push({
+            priority: 'high',
+            title: '수식/롤업 기반 필터링 및 정렬',
+            description: '수식과 롤업으로 필터링하거나 정렬하면 로딩 시간이 길어질 수 있습니다.',
+            action: '필터 및 정렬 기준을 선택, 상태, 숫자, 날짜 등의 단순 속성으로 변경하세요.'
+        });
+    }
+
+    // 3. 수식 길이 및 복잡도 단축 (Shorten formula lengths)
+    if (hasFormula && depth >= 3) {
         tips.push({
             priority: 'medium',
-            title: 'Rollup 집계함수 성능 검토',
-            description: 'Rollup의 집계함수 (average, count 등)는 함수마다 성능이 다릅니다.',
-            action: 'average는 느리므로 sum을 사용하고 후속처리로 평균을 계산하는 것을 고려하세요'
+            title: '수식 길이 단축 및 최적화',
+            description: '깊은 참조 체인 내에 수식이 포함되어 있습니다. 다중 참조 시 수식의 텍스트 길이가 길거나 중첩된 함수가 많으면 성능에 악영향을 줍니다.',
+            action: '수식 속성에 사용 중인 수식을 간결하게 재작성하고, 불필요한 연산을 제거하여 한도를 초과하지 않도록 관리하세요.'
         });
     }
 
-    // 5. 일반 최적화 제안
+    // 4. 불필요한 중간 속성 숨기기 (Hide unnecessary properties)
     if (depth >= 3) {
         tips.push({
             priority: 'medium',
-            title: '참조 경로 분석 도구 활용',
-            description: '네트워크 시각화 탭에서 이 참조 경로를 상세히 분석할 수 있습니다.',
-            action: '"참조 경로 시각화"에서 이 체인을 클릭하여 전체 구조를 확인하세요'
+            title: '중간 계산용 속성 가시성 관리',
+            description: '이 체인을 완성하기 위해 생성된 중간 도우미(Helper) 속성들이 표나 보기에 노출되어 있으면 렌더링 성능이 저하됩니다.',
+            action: '최종 결과 표시에 중요하지 않은 중간 참조용 롤업 및 수식 속성들은 뷰에서 숨기기(Hide) 처리하세요.'
+        });
+    }
+
+    // 5. 대규모 데이터 영향도 파악 및 뷰(View) 트래픽 분산 (Avoid high-traffic pages limits)
+    if (affectedRecords > 100) {
+        tips.push({
+            priority: 'medium',
+            title: '대량 데이터 연산 부하 및 렌더링 제한',
+            description: `이 참조는 ${affectedRecords}개의 레코드에 걸쳐 계산됩니다. 처리할 페이지가 많을수록 성능 저하가 뚜렷해집니다.`,
+            action: '생성 일시(Created time) 등의 단순 필터를 추가하여 한 화면에 렌더링되고 계산되는 데이터(페이지) 수를 줄이세요.'
         });
     }
 
