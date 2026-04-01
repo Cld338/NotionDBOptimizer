@@ -565,6 +565,16 @@ function _extractChainPath(treeNode, sourceDb, sourceField, sourceType) {
         currentNode = child;
     }
 
+    // ★ 마지막 노드에 referencedProperty가 있으면 최종 참조 필드도 경로에 추가
+    if (currentNode && currentNode.referencedProperty && currentNode.referencedPropertyDb) {
+        path.push({
+            db: currentNode.referencedPropertyDb,
+            field: currentNode.referencedProperty,
+            type: 'referenced'  // 참조된 필드를 명시적으로 표시
+        });
+        depth++;
+    }
+
     return {
         path: path,
         depth: depth,
@@ -784,7 +794,7 @@ function generatePerformanceReport(records, properties, propertyNames, columnSta
         opportunities: opportunities,
         limits: sizeLimits,
         deepReferenceChains: deepReferenceChains,
-        deepChainsMetrics: deepChainsMetrics  // ★ 요약 통계 추가
+        deepChainsMetrics: deepChainsMetrics 
     };
 }
 
