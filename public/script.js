@@ -641,26 +641,28 @@ const AnalysisRenderer = {
                             const priorityConfig = {
                                 'high': { color: '#ef4444', bgColor: 'rgba(239, 68, 68, 0.1)', icon: '🔴', label: '우선' },
                                 'medium': { color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.1)', icon: '🟠', label: '추가' },
-                                'low': { color: '#3b82f6', bgColor: 'rgba(59, 130, 246, 0.1)', icon: '🔵', label: '참고' }
+                                'low': { color: '#3b82f6', bgColor: 'rgba(59, 130, 246, 0.1)', icon: '�', label: '참고' }
                             };
                             const config = priorityConfig[tip.priority] || priorityConfig['low'];
                             return `
-                                <div class="chain-tip-card" style="border-left-color: ${config.color};">
-                                    <div class="chain-tip-header">
+                                <div class="chain-tip-card" style="">
+                                    <div class="chain-tip-priority-box">
                                         <span class="chain-tip-priority" style="background-color: ${config.color};">
                                             <span class="priority-icon">${config.icon}</span>
                                             <span class="priority-label">${config.label}</span>
                                         </span>
-                                        <span class="chain-tip-title">${Formatter.escapeHtml(tip.title)}</span>
                                     </div>
-                                    
-                                    <div class="chain-tip-content">
-                                        <p class="chain-tip-text"><strong>문제</strong> ${Formatter.escapeHtml(tip.description)}</p>
-                                        <p class="chain-tip-text"><strong>해결</strong> ${Formatter.escapeHtml(tip.action)}</p>
-                                    </div>
-                                    
-                                    <div class="chain-tip-actions">
-                                        <button class="tip-action-btn notion-btn" title="Notion 데이터베이스 열기" onclick="app.openNotionDatabase()">수정 →</button>
+                                    <div class="chain-tip-body">
+                                        <div class="chain-tip-header">
+                                            <span class="chain-tip-title">${Formatter.escapeHtml(tip.title)}</span>
+                                        </div>
+                                        <div class="chain-tip-content">
+                                            <p class="chain-tip-text"><strong>문제</strong> ${Formatter.escapeHtml(tip.description)}</p>
+                                            <p class="chain-tip-text"><strong>해결</strong> ${Formatter.escapeHtml(tip.action)}</p>
+                                        </div>
+                                        <div class="chain-tip-actions">
+                                            <button class="tip-action-btn notion-btn" title="Notion 데이터베이스 열기" onclick="app.openNotionDatabase()">수정 →</button>
+                                        </div>
                                     </div>
                                 </div>
                             `;
