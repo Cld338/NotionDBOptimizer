@@ -121,3 +121,92 @@
     font-size: 1.1rem;
     width: 100%;
 }
+
+/* 아이콘 버튼 */
+.btn-icon {
+    padding: 8px 12px;
+    width: auto;
+    height: auto;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-light);
+    border-radius: var(--radius-md);
+    gap: 0.5char;
+    font-size: 0.9rem;
+}
+
+.btn-icon:hover {
+    background: var(--color-secondary);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-icon:active {
+    transform: translateY(0);
+}
+
+/* 보조 버튼 (Secondary) */
+.btn-secondary {
+    padding: 10px 18px;
+    border: 1.5px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-dark);
+    font-size: 0.95rem;
+    border-radius: var(--radius-md);
+}
+
+.btn-secondary:hover {
+    background: var(--color-secondary);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(230, 144, 70, 0.15);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
+}
+
+/* 로딩 상태 */
+.btn.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.btn.loading .btn-refresh-icon {
+    display: inline-block;
+    animation: spin-smooth 1.5s linear infinite;
+}
+
+@keyframes spin-smooth {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 버튼 내 아이콘 및 텍스트 */
+.btn-refresh-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-fast);
+}
+
+.btn-refresh-text {
+    display: inline;
+    white-space: nowrap;
+}
+
+.btn-icon .btn-refresh-text {
+    display: none;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

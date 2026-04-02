@@ -305,4 +305,23 @@
     th, td {
         padding: var(--spacing-sm);
     }
+
+    /* 반응형 버튼 스타일 */
+    .btn-icon {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+
+    .btn-icon .btn-refresh-text {
+        display: none;
+    }
+
+    .btn-secondary {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+
+    .btn-secondary .btn-refresh-text {
+        display: none;
+    }
 }

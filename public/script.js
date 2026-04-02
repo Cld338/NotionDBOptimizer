@@ -592,7 +592,7 @@ const AnalysisRenderer = {
             <div class="deep-chains-metrics">
                 <div class="metrics-grid">
                     <div class="metric-card"><div class="metric-label">📊 최대 깊이</div><div class="metric-value">${safeMetrics.maxDepth || 0}</div><div class="metric-desc">가장 복잡한 경로</div></div>
-                    <div class="metric-card"><div class="metric-label">🔗 발견된 체인</div><div class="metric-value">${deepChains.length}</div><div class="metric-desc">3단계 이상</div></div>
+                    <div class="metric-card"><div class="metric-label">🔗 발견된 경로</div><div class="metric-value">${deepChains.length}</div><div class="metric-desc">3단계 이상</div></div>
                     <div class="metric-card"><div class="metric-label">💾 영향 범위</div><div class="metric-value">${safeMetrics.totalAffectedRecords || 0}</div><div class="metric-desc">레코드 수</div></div>
                 </div>
             </div>
@@ -605,11 +605,11 @@ const AnalysisRenderer = {
                             <span class="deep-chain-path-text" title="${chain.path ? chain.path.map(node => `${node.db}.${node.field}`).join(' → ') : ''}">${chain.sourceDb}.${chain.sourceField}</span>
                         </div>
                         <div class="deep-chain-header-right">
-                            <span class="deep-chain-info">영향: <strong>${chain.affectedRecords}</strong>개 레코드</span>
+                            <div class="deep-chain-info"><span style="font-size: 12px; color: #999;">영향</span><strong>${chain.affectedRecords}</strong>개</div>
                             <button class="action-btn" onclick="event.stopPropagation(); app.openNotionDatabase()" title="Notion으로 이동">↗</button>
                         </div>
                     </div>
-                    <div class="deep-chain-content" style="display: none;">
+                    <div class="deep-chain-content hidden">
                         ${this._renderDeepChainContent(chain)}
                     </div>
                 </div>`).join('')}
@@ -618,61 +618,91 @@ const AnalysisRenderer = {
     },
 
     _renderDeepChainContent(chain) {
-        let html = `<div class="deep-chain-content-inner">
-            <div class="chain-section">
-                <h5 class="chain-section-title">🔀 참조 경로 (${chain.relatedDatabases ? chain.relatedDatabases.length : 0}개)</h5>
-                <div class="chain-section-content">
-                    <div class="indented-tree-root" style="background: none; border: none; padding: 0;">
-                        ${chain.tree ? this._renderReferenceChainAsIndentedTree(
-                            chain.sourceDb,
-                            chain.sourceField,
-                            chain.sourceType,
-                            chain.tree
-                        ) : `<p style="color: var(--color-text-muted); font-size: 0.9rem;">트리 정보를 불러올 수 없습니다</p>`}
+        // 타임라인 데이터 생성
+        let timelineHtml = `<div class="chain-timeline">`;
+        
+        // 시작점
+        timelineHtml += `
+            <div class="chain-timeline-item">
+                <div class="chain-timeline-dot">1</div>
+                <div class="chain-timeline-content">
+                    <div class="chain-timeline-title">
+                        <span>📌 시작점</span> ${Formatter.escapeHtml(chain.sourceDb)} 데이터베이스
+                    </div>
+                    <div class="chain-timeline-text">
+                        <strong>${Formatter.escapeHtml(chain.sourceField)}</strong> 필드를 통한 참조 시작 (깊이: <strong>${chain.depth}</strong>단계)
                     </div>
                 </div>
             </div>
-
-            <div class="chain-section">
-                <h5 class="chain-section-title">💡 최적화 제안 (${chain.optimizationTips ? chain.optimizationTips.length : 0}개)</h5>
+        `;
+        
+        // 중간 경로 (있으면) - 첫 번째 항목은 시작점과 동일하므로 스킵
+        if (chain.path && chain.path.length > 1) {
+            chain.path.slice(1).forEach((node, idx) => {
+                timelineHtml += `
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">${idx + 2}</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">
+                                <span>🔗 참조</span> ${Formatter.escapeHtml(node.db)} 데이터베이스
+                            </div>
+                            <div class="chain-timeline-text">
+                                <strong>${Formatter.escapeHtml(node.field)}</strong> 필드 → ${chain.affectedRecords ? `${chain.affectedRecords.toLocaleString()}개 레코드에서 실행` : '참조'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        timelineHtml += `</div>`;
+        
+        // 최적화 제안 섹션 - 아코디언 스타일
+        let optimizationHtml = `<div class="chain-section">
+                <h5 class="chain-section-title">
+                    <span class="section-title-count">${chain.optimizationTips ? chain.optimizationTips.length : 0}개</span>
+                </h5>
                 <div class="chain-section-content">
-                    <div class="chain-tips-list">
-                        ${chain.optimizationTips ? chain.optimizationTips.map((tip, idx) => {
+                    <div class="optimization-tips-container">
+                        ${chain.optimizationTips && chain.optimizationTips.length > 0 ? chain.optimizationTips.map((tip, idx) => {
                             const priorityConfig = {
-                                'high': { color: '#ef4444', bgColor: 'rgba(239, 68, 68, 0.1)', icon: '🔴', label: '우선' },
-                                'medium': { color: '#f59e0b', bgColor: 'rgba(245, 158, 11, 0.1)', icon: '🟠', label: '추가' },
-                                'low': { color: '#3b82f6', bgColor: 'rgba(59, 130, 246, 0.1)', icon: '�', label: '참고' }
+                                'high': { icon: '⚠️', label: '높음', class: 'priority-high' },
+                                'medium': { icon: '💡', label: '중간', class: 'priority-medium' },
+                                'low': { icon: 'ℹ️', label: '낮음', class: 'priority-low' }
                             };
                             const config = priorityConfig[tip.priority] || priorityConfig['low'];
+                            const titleEsc = Formatter.escapeHtml(tip.title);
+                            const descEsc = Formatter.escapeHtml(tip.description);
+                            const actionEsc = Formatter.escapeHtml(tip.action);
                             return `
-                                <div class="chain-tip-card" style="">
-                                    <div class="chain-tip-priority-box">
-                                        <span class="chain-tip-priority" style="background-color: ${config.color};">
-                                            <span class="priority-icon">${config.icon}</span>
-                                            <span class="priority-label">${config.label}</span>
-                                        </span>
+                                <div class="optimization-accordion-item ${config.class}" data-priority="${tip.priority || 'low'}">
+                                    <div class="optimization-accordion-header" onclick="this.parentElement.classList.toggle('active')">
+                                        <div class="optimization-header-content">
+                                            <div class="optimization-priority-badge">${idx + 1}</div>
+                                            <div class="optimization-header-text">
+                                                <div class="optimization-header-title">${titleEsc}</div>
+                                                <div class="optimization-header-desc"></div>
+                                            </div>
+                                        </div>
+                                        <div class="optimization-toggle-icon">▼</div>
                                     </div>
-                                    <div class="chain-tip-body">
-                                        <div class="chain-tip-header">
-                                            <span class="chain-tip-title">${Formatter.escapeHtml(tip.title)}</span>
+                                    <div class="optimization-accordion-content">
+                                        <div class="optimization-section">
+                                            <div class="optimization-section-text">${descEsc}</div>
                                         </div>
-                                        <div class="chain-tip-content">
-                                            <p class="chain-tip-text"><strong>문제</strong> ${Formatter.escapeHtml(tip.description)}</p>
-                                            <p class="chain-tip-text"><strong>해결</strong> ${Formatter.escapeHtml(tip.action)}</p>
-                                        </div>
-                                        <div class="chain-tip-actions">
-                                            <button class="tip-action-btn notion-btn" title="Notion 데이터베이스 열기" onclick="app.openNotionDatabase()">수정 →</button>
+                                        <div class="optimization-section">
+                                            <div class="optimization-section-title">✓ 개선 방법</div>
+                                            <div class="optimization-section-text">${actionEsc}</div>
                                         </div>
                                     </div>
                                 </div>
                             `;
-                        }).join('') : '<p style="color: var(--color-text-muted);">제안 없음</p>'}
+                        }).join('') : '<div class="empty-state"><p>최적화 제안이 없습니다.</p></div>'}
                     </div>
                 </div>
-            </div>
-        </div>`;
+            </div>`;
 
-        return html;
+        return `<div class="chain-sections-wrapper">${timelineHtml}${optimizationHtml}</div>`;
     },
 
     _renderReferenceChainAsIndentedTree(sourceDb, sourceField, sourceType, treeRoot) {
@@ -965,22 +995,18 @@ const AnalysisRenderer = {
         if (!item) return;
         const content = item.querySelector('.deep-chain-content');
         const toggle = item.querySelector('.deep-chain-toggle');
-        const isExpanded = content.style.display !== 'none';
         
+        // 다른 모든 아이템 닫기
         document.querySelectorAll('.deep-chain-item').forEach(el => {
             if (el !== item) {
-                el.querySelector('.deep-chain-content').style.display = 'none';
+                el.querySelector('.deep-chain-content').classList.add('hidden');
                 el.querySelector('.deep-chain-toggle').classList.remove('expanded');
             }
         });
         
-        if (isExpanded) {
-            content.style.display = 'none';
-            toggle.classList.remove('expanded');
-        } else {
-            content.style.display = 'block';
-            toggle.classList.add('expanded');
-        }
+        // 현재 아이템 토글
+        content.classList.toggle('hidden');
+        toggle.classList.toggle('expanded');
     }
 };
 
@@ -1031,6 +1057,10 @@ const DatabaseManager = {
     },
 
     async refreshDatabases() {
+        const btn = document.getElementById('refreshDatabasesBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+
         try {
             const result = await ApiService.refreshDatabaseList();
             AppState.setDatabaseList(result.databases);
@@ -1038,28 +1068,86 @@ const DatabaseManager = {
             NotificationService.showSuccess('DB 목록이 새로 고쳐졌습니다.');
         } catch (error) {
             NotificationService.showError('DB 목록 새로고침에 실패했습니다.');
+        } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
         }
     },
 
     async refreshAnalysis() {
+        const btn = document.getElementById('refreshBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+
         try {
             const result = await ApiService.refreshAnalysis(AppState.currentDatabaseId);
             AnalysisRenderer.renderAnalysis(result.data);
             NotificationService.showSuccess('분석이 새로 고쳐졌습니다.');
         } catch (error) {
             NotificationService.showError('분석 새로고침에 실패했습니다.');
+        } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
         }
     },
 
     async refreshNetwork() {
+        const btn = document.getElementById('refreshBtn');
+        btn.classList.add('loading');
+        btn.disabled = true;
+
         try {
             const result = await ApiService.refreshNetwork(AppState.currentDatabaseId);
             NotificationService.showSuccess('네트워크가 새로 고쳐졌습니다.');
         } catch (error) {
             NotificationService.showError('네트워크 새로고침에 실패했습니다.');
+        } finally {
+            btn.classList.remove('loading');
+            btn.disabled = false;
         }
     }
 };
+
+// ============ 모달 관련 함수 ============
+function showOptimizationModal(title, problem, solution, icon, priority) {
+    const modal = document.getElementById('optimizationModal');
+    const priorityLabels = { high: '🔴 높은 우선순위', medium: '🟠 중간 우선순위', low: '🔵 낮은 우선순위' };
+    
+    document.getElementById('optimizationModalTitle').textContent = title;
+    document.getElementById('optimizationModalBody').innerHTML = `
+        <div style="margin-bottom: 16px; text-align: center; color: #7f8c8d; font-size: 0.9rem;">
+            ${priorityLabels[priority] || '낮은 우선순위'}
+        </div>
+        <div class="optimization-modal-section">
+            <div class="optimization-modal-section-label">
+                <span class="optimization-modal-section-icon">●</span>
+                <span>문제점</span>
+            </div>
+            <div class="optimization-modal-section-text">${problem}</div>
+        </div>
+        <div class="optimization-modal-section">
+            <div class="optimization-modal-section-label">
+                <span class="optimization-modal-section-icon">✓</span>
+                <span>개선 방법</span>
+            </div>
+            <div class="optimization-modal-section-text">${solution}</div>
+        </div>
+    `;
+    
+    modal.classList.add(priority, 'show');
+}
+
+function closeOptimizationModal() {
+    const modal = document.getElementById('optimizationModal');
+    modal.classList.remove('show', 'high', 'medium', 'low');
+}
+
+// ESC 키로 모달 닫기
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeOptimizationModal();
+    }
+});
 
 // ============ 10. 이벤트 핸들러 ============
 const EventHandler = {

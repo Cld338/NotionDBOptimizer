@@ -57,7 +57,7 @@
 }
 
 .tree-node-container {
-    border-left: 2px solid var(--color-divider);
+    border-left: 1px solid #d9d9d9;
     padding-left: var(--spacing-md);
     margin-left: var(--spacing-md);
     margin-top: var(--spacing-xs);
@@ -65,64 +65,71 @@
 
 .tree-node-item {
     position: relative;
-    margin-bottom: var(--spacing-sm);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: var(--radius-sm);
-    transition: background-color var(--transition-fast);
+    margin-bottom: 6px;
+    padding: 4px 0;
+    border-radius: 0;
+    transition: background-color 150ms ease;
+    background: transparent;
+    border: none;
 }
 
 .tree-node-item:hover {
-    background-color: var(--color-bg);
+    background-color: transparent;
+    border-color: transparent;
 }
 
 .tree-node-label {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
-    font-size: 0.9rem;
-    color: var(--color-text-light);
+    gap: 6px;
+    font-size: 0.8rem;
+    color: #666;
+    padding: 2px 0;
 }
 
 .tree-node-db {
     font-weight: 600;
-    color: var(--color-text-dark);
-    background: linear-gradient(135deg, rgba(230, 126, 34, 0.1), transparent);
-    padding: 2px 6px;
-    border-radius: 3px;
+    color: #333;
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: 0.75rem;
 }
 
 .tree-node-field {
     display: inline-flex;
     align-items: center;
     gap: 2px;
-    padding: 2px 6px;
-    background: rgba(52, 152, 219, 0.1);
-    border-radius: 3px;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
     font-family: var(--font-code);
-    font-size: 0.85rem;
+    font-size: 0.75rem;
+    color: #666;
 }
 
 .tree-node-type {
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
+    font-size: 0.65rem;
+    color: white;
     padding: 2px 6px;
-    background: var(--color-bg);
-    border-radius: 3px;
-    margin-left: var(--spacing-xs);
+    background: #999;
+    border-radius: 2px;
+    margin-left: 4px;
+    font-weight: 600;
 }
 
 .tree-node-type.rollup {
-    background: linear-gradient(135deg, rgba(52, 211, 153, 0.2), transparent);
-    color: #10b981;
+    background: #10b981;
+    color: white;
 }
 
 .tree-node-type.formula {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), transparent);
-    color: #a855f7;
+    background: #a855f7;
+    color: white;
 }
 
 .tree-children-container {
-    margin-left: var(--spacing-sm);
-    border-left: 1px solid var(--color-divider);
+    margin-left: 0;
+    border-left: 1px solid #d9d9d9;
     padding-left: var(--spacing-md);
 }
