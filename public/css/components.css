@@ -87,11 +87,11 @@
 
 /* 탭 콘텐츠 */
 .tab-content {
-    display: none;
     animation: fadeIn var(--transition-normal);
 }
 
-.tab-content.active {
+/* is-hidden이 없을 때만 표시 */
+.tab-content:not(.is-hidden) {
     display: block;
 }
 
@@ -201,7 +201,8 @@ tr:last-child td {
     content: none;
 }
 
-.refresh-button-morphing.active .material-icons-outlined {
+.refresh-button-morphing.active .material-icons-outlined,
+.refresh-button-morphing.is-active .material-icons-outlined {
     animation: notionRotate 1.2s linear infinite;
 }
 

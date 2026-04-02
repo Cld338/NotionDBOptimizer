@@ -1,0 +1,1765 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chain-Section UI 개선 샘플</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* ============ 기본 설정 ============ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --color-primary: #E69046;
+            --color-primary-deep: #AA442F;
+            --color-secondary: #F0E8DC;
+            --color-accent: #4D2E27;
+            --color-neutral: #8B7B6F;
+            --color-surface: #FFFFFF;
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            
+            --color-text-dark: #4D2E27;
+            --color-text-light: #7A5A52;
+            --color-text-muted: #8B7B6F;
+            --color-border: #D9CEC1;
+            --color-divider: #E5DBD0;
+            --color-hover: #FAF7F2;
+            
+            --shadow-sm: 0 2px 6px rgba(93, 64, 55, 0.10);
+            --shadow-md: 0 4px 12px rgba(93, 64, 55, 0.12);
+            --shadow-lg: 0 8px 24px rgba(93, 64, 55, 0.15);
+            
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            --transition-fast: 200ms ease;
+            --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        html {
+            font-size: 16px;
+            background-color: var(--color-secondary);
+        }
+        
+        body {
+            font-family: 'Pretendard', sans-serif;
+            color: var(--color-text-dark);
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+        
+        .sample-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .sample-section {
+            margin-bottom: 80px;
+        }
+        
+        .sample-header {
+            margin-bottom: 40px;
+            border-bottom: 2px solid var(--color-divider);
+            padding-bottom: 20px;
+        }
+        
+        .sample-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--color-text-dark);
+        }
+        
+        .sample-description {
+            font-size: 0.95rem;
+            color: var(--color-text-light);
+            margin-bottom: 15px;
+        }
+        
+        .sample-features {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+        }
+        
+        .feature-badge {
+            background: rgba(230, 144, 70, 0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            border-left: 3px solid var(--color-primary);
+        }
+        
+        /* ============ 공통 스타일 ============ */
+        .chain-sections-wrapper-common {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+            column-gap: 36px;
+            padding: 0;
+        }
+        
+        .chain-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .chain-timeline-item {
+            display: flex;
+            gap: 16px;
+            position: relative;
+            padding-left: 20px;
+        }
+        
+        .chain-timeline-item::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 32px;
+            width: 2px;
+            height: calc(100% + 16px);
+            background: var(--color-divider);
+        }
+        
+        .chain-timeline-item:last-child::before {
+            display: none;
+        }
+        
+        .chain-timeline-dot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+            color: white;
+            border-radius: 50%;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 3px;
+            position: relative;
+            z-index: 1;
+            font-size: 0.85rem;
+        }
+        
+        .chain-timeline-content {
+            flex: 1;
+            padding-top: 3px;
+        }
+        
+        .chain-timeline-title {
+            font-weight: 600;
+            color: var(--color-text-dark);
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+        
+        .chain-timeline-text {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            line-height: 1.6;
+        }
+        
+        /* ============ SAMPLE 1: 카드 그리드 레이아웃 ============ */
+        .sample-1-wrapper {
+            background: linear-gradient(135deg, rgba(230, 144, 70, 0.08) 0%, rgba(230, 144, 70, 0.04) 100%);
+            border-radius: var(--radius-xl);
+            border: 1.5px solid rgba(230, 144, 70, 0.2);
+            padding: 32px;
+        }
+        
+        .sample-1-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--color-text-dark);
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .sample-1-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 36px;
+            height: 32px;
+            padding: 0 12px;
+            margin-left: auto;
+            background: linear-gradient(135deg, rgba(230, 144, 70, 0.18) 0%, rgba(230, 144, 70, 0.1) 100%);
+            color: var(--color-primary);
+            border-radius: 16px;
+            font-size: 0.82rem;
+            font-weight: 800;
+            border: 1.5px solid rgba(230, 144, 70, 0.16);
+        }
+        
+        .sample-1-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        
+        .sample-1-card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            border: 1.5px solid var(--color-border);
+            border-left: 5px solid;
+            transition: all var(--transition-normal);
+            cursor: pointer;
+        }
+        
+        .sample-1-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .sample-1-card.priority-high {
+            border-left-color: #AA442F;
+        }
+        
+        .sample-1-card.priority-medium {
+            border-left-color: #E69046;
+        }
+        
+        .sample-1-card.priority-low {
+            border-left-color: #8B7B6F;
+        }
+        
+        .sample-1-card-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        
+        .sample-1-card.priority-high .sample-1-card-badge {
+            background: rgba(170, 68, 47, 0.15);
+            color: #AA442F;
+            border: 1px solid rgba(170, 68, 47, 0.3);
+        }
+        
+        .sample-1-card.priority-medium .sample-1-card-badge {
+            background: rgba(230, 144, 70, 0.15);
+            color: #E69046;
+            border: 1px solid rgba(230, 144, 70, 0.3);
+        }
+        
+        .sample-1-card.priority-low .sample-1-card-badge {
+            background: rgba(139, 123, 111, 0.15);
+            color: #8B7B6F;
+            border: 1px solid rgba(139, 123, 111, 0.3);
+        }
+        
+        .sample-1-card-title {
+            font-weight: 700;
+            color: var(--color-text-dark);
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .sample-1-card-desc {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        
+        .sample-1-card-action {
+            padding-top: 12px;
+            border-top: 1px solid var(--color-divider);
+            font-size: 0.8rem;
+            color: var(--color-primary);
+            font-weight: 600;
+        }
+        
+        /* ============ SAMPLE 2: 탭 기반 필터링 ============ */
+        .sample-2-wrapper {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            border: 1.5px solid var(--color-border);
+            padding: 24px;
+        }
+        
+        .sample-2-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--color-divider);
+        }
+        
+        .sample-2-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--color-text-muted);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        
+        .sample-2-tab:hover {
+            color: var(--color-text-dark);
+        }
+        
+        .sample-2-tab.active {
+            color: var(--color-primary);
+            border-bottom-color: var(--color-primary);
+        }
+        
+        .sample-2-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .sample-2-item {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            background: var(--color-hover);
+            border-radius: var(--radius-md);
+            border-left: 4px solid;
+            transition: all var(--transition-fast);
+        }
+        
+        .sample-2-item:hover {
+            background: #f5f1eb;
+            transform: translateX(4px);
+        }
+        
+        .sample-2-item.priority-high {
+            border-left-color: #AA442F;
+        }
+        
+        .sample-2-item.priority-medium {
+            border-left-color: #E69046;
+        }
+        
+        .sample-2-item.priority-low {
+            border-left-color: #8B7B6F;
+        }
+        
+        .sample-2-item-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+        
+        .sample-2-item-content {
+            flex: 1;
+        }
+        
+        .sample-2-item-title {
+            font-weight: 700;
+            color: var(--color-text-dark);
+            margin-bottom: 4px;
+        }
+        
+        .sample-2-item-desc {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            margin-bottom: 8px;
+        }
+        
+        .sample-2-item-action {
+            font-size: 0.8rem;
+            color: var(--color-primary);
+            font-weight: 600;
+            text-decoration: none;
+        }
+        
+        /* ============ SAMPLE 3: 체크리스트 스타일 ============ */
+        .sample-3-wrapper {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            border: 1.5px solid var(--color-border);
+            padding: 24px;
+        }
+        
+        .sample-3-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--color-divider);
+        }
+        
+        .sample-3-progress {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--color-primary);
+        }
+        
+        .sample-3-progress-text {
+            flex: 1;
+        }
+        
+        .sample-3-progress-label {
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+        }
+        
+        .sample-3-progress-bar {
+            width: 100%;
+            height: 4px;
+            background: var(--color-divider);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        
+        .sample-3-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--color-primary-deep), var(--color-primary));
+            width: 60%;
+            border-radius: 2px;
+        }
+        
+        .sample-3-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .sample-3-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 16px;
+            background: var(--color-hover);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            cursor: pointer;
+        }
+        
+        .sample-3-item:hover {
+            background: #f5f1eb;
+        }
+        
+        .sample-3-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid var(--color-primary);
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+        }
+        
+        .sample-3-item.completed .sample-3-checkbox {
+            background: var(--color-primary);
+            color: white;
+        }
+        
+        .sample-3-item.completed {
+            opacity: 0.6;
+        }
+        
+        .sample-3-item-content {
+            flex: 1;
+        }
+        
+        .sample-3-item-title {
+            font-weight: 600;
+            color: var(--color-text-dark);
+            margin-bottom: 4px;
+        }
+        
+        .sample-3-item.completed .sample-3-item-title {
+            text-decoration: line-through;
+        }
+        
+        .sample-3-item-desc {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+        
+        /* ============ SAMPLE 4: 가장 중요한 항목 강조 ============ */
+        .sample-4-wrapper {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            padding: 24px;
+        }
+        
+        .sample-4-top-item {
+            background: linear-gradient(135deg, rgba(170, 68, 47, 0.08) 0%, rgba(230, 144, 70, 0.06) 100%);
+            border: 2px solid #AA442F;
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sample-4-top-item::before {
+            content: '⭐';
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            font-size: 2rem;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        
+        .sample-4-top-badge {
+            display: inline-block;
+            background: #AA442F;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sample-4-top-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #AA442F;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sample-4-top-desc {
+            color: var(--color-text-dark);
+            margin-bottom: 12px;
+            position: relative;
+            z-index: 1;
+            line-height: 1.7;
+        }
+        
+        .sample-4-top-action {
+            display: inline-block;
+            background: #AA442F;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .sample-4-top-action:hover {
+            background: #8a3826;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .sample-4-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0;
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+        }
+        
+        .sample-4-divider::before,
+        .sample-4-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--color-divider);
+        }
+        
+        .sample-4-other-items {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .sample-4-other-item {
+            padding: 14px 16px;
+            background: var(--color-hover);
+            border-radius: var(--radius-md);
+            border-left: 4px solid var(--color-primary);
+            transition: all var(--transition-fast);
+        }
+        
+        .sample-4-other-item:hover {
+            background: #f5f1eb;
+            transform: translateX(4px);
+        }
+        
+        .sample-4-other-item-title {
+            font-weight: 600;
+            color: var(--color-text-dark);
+            margin-bottom: 4px;
+        }
+        
+        .sample-4-other-item-desc {
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+        }
+        
+        /* ============ SAMPLE 5: 흐름도 스타일 ============ */
+        .sample-5-wrapper {
+            background: var(--color-surface);
+            border-radius: var(--radius-xl);
+            border: 1.5px solid var(--color-border);
+            padding: 24px;
+        }
+        
+        .sample-5-flow {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        
+        .sample-5-flow-item {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            gap: 16px;
+            padding: 20px;
+            border-bottom: 1px solid var(--color-divider);
+            position: relative;
+            transition: all var(--transition-fast);
+        }
+        
+        .sample-5-flow-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sample-5-flow-item:hover {
+            background: var(--color-hover);
+        }
+        
+        .sample-5-flow-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: white;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-md);
+        }
+        
+        .sample-5-flow-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .sample-5-flow-title {
+            font-weight: 700;
+            color: var(--color-text-dark);
+            margin-bottom: 6px;
+        }
+        
+        .sample-5-flow-desc {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        
+        .sample-5-flow-benefit {
+            font-size: 0.8rem;
+            color: var(--color-success);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* ============ 반응형 ============ */
+        @media (max-width: 768px) {
+            .chain-sections-wrapper-common {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .sample-1-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* ============ SAMPLE 6: Notion 타임라인 (컴팩트) ============ */
+        .sample-6-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+        }
+        
+        .sample-6-item {
+            padding: 32px 24px;
+            border-bottom: 1px solid var(--color-divider);
+            display: grid;
+            grid-template-columns: 60px 1fr auto;
+            gap: 24px;
+            align-items: start;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .sample-6-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sample-6-item:hover {
+            background-color: var(--color-hover);
+        }
+        
+        .sample-6-icon {
+            font-size: 1.8rem;
+            text-align: center;
+            padding-top: 4px;
+        }
+        
+        .sample-6-content h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--color-text-dark);
+            margin-bottom: 6px;
+            font-family: var(--font-heading);
+        }
+        
+        .sample-6-content p {
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+            line-height: 1.7;
+            margin: 0;
+        }
+        
+        .sample-6-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+        
+        .sample-6-tag {
+            display: inline-block;
+            padding: 4px 10px;
+            background: rgba(230, 144, 70, 0.1);
+            color: var(--color-primary);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(230, 144, 70, 0.2);
+        }
+        
+        .sample-6-tag.high {
+            background: rgba(170, 68, 47, 0.1);
+            color: #AA442F;
+            border-color: rgba(170, 68, 47, 0.2);
+        }
+        
+        .sample-6-tag.medium {
+            background: rgba(230, 144, 70, 0.1);
+            color: #E69046;
+            border-color: rgba(230, 144, 70, 0.2);
+        }
+        
+        .sample-6-tag.low {
+            background: rgba(139, 123, 111, 0.1);
+            color: #8B7B6F;
+            border-color: rgba(139, 123, 111, 0.2);
+        }
+        
+        .sample-6-action {
+            padding-right: 8px;
+            color: var(--color-primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+        
+        .sample-6-item:hover .sample-6-action {
+            opacity: 1;
+        }
+        
+        /* ============ SAMPLE 7: 우선순위 그룹 섹션 ============ */
+        .sample-7-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .sample-7-group {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+        }
+        
+        .sample-7-group-header {
+            padding: 16px 24px;
+            background: linear-gradient(90deg, rgba(230, 144, 70, 0.04), transparent);
+            border-bottom: 2px solid var(--color-divider);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            color: var(--color-text-dark);
+            font-size: 0.95rem;
+        }
+        
+        .sample-7-group-icon {
+            font-size: 1.2rem;
+        }
+        
+        .sample-7-group-count {
+            margin-left: auto;
+            background: rgba(230, 144, 70, 0.15);
+            color: var(--color-primary);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        
+        .sample-7-group-items {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sample-7-group-item {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--color-divider);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: background-color var(--transition-fast);
+        }
+        
+        .sample-7-group-item:last-child {
+            border-bottom: none;
+        }
+        
+        .sample-7-group-item:hover {
+            background-color: var(--color-hover);
+        }
+        
+        .sample-7-group-item-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-primary-deep));
+            color: white;
+            border-radius: 50%;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .sample-7-group-item-text {
+            flex: 1;
+        }
+        
+        .sample-7-group-item-title {
+            font-weight: 700;
+            color: var(--color-text-dark);
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+        
+        .sample-7-group-item-desc {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+        }
+        
+        /* ============ SAMPLE 8: 인라인 태그 리스트 ============ */
+        .sample-8-wrapper {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border);
+            padding: 24px;
+        }
+        
+        .sample-8-items {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+        
+        .sample-8-item {
+            padding: 20px;
+            background: var(--color-hover);
+            border-radius: var(--radius-md);
+            transition: all var(--transition-fast);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .sample-8-item:hover {
+            background: #f0ebe5;
+            transform: translateX(2px);
+        }
+        
+        .sample-8-item-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: space-between;
+        }
+        
+        .sample-8-item-title {
+            font-weight: 700;
+            color: var(--color-text-dark);
+            font-size: 0.95rem;
+            flex: 1;
+        }
+        
+        .sample-8-item-badge {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        
+        .sample-8-item-badge.high {
+            background: #AA442F;
+            color: white;
+        }
+        
+        .sample-8-item-badge.medium {
+            background: #E69046;
+            color: white;
+        }
+        
+        .sample-8-item-badge.low {
+            background: #8B7B6F;
+            color: white;
+        }
+        
+        .sample-8-item-desc {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            line-height: 1.7;
+        }
+        
+        /* ============ SAMPLE 9: 타일 카드 레이아웃 ============ */
+        .sample-9-wrapper {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 18px;
+        }
+        
+        .sample-9-card {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: all var(--transition-normal);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        
+        .sample-9-card:hover {
+            box-shadow: 0 12px 24px rgba(93, 64, 55, 0.12);
+            transform: translateY(-4px);
+            border-color: var(--color-primary);
+        }
+        
+        .sample-9-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        
+        .sample-9-card-icon {
+            font-size: 2rem;
+            flex-shrink: 0;
+        }
+        
+        .sample-9-card-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+        
+        .sample-9-card-badge.high {
+            background: rgba(170, 68, 47, 0.15);
+            color: #AA442F;
+            border: 1px solid rgba(170, 68, 47, 0.3);
+        }
+        
+        .sample-9-card-badge.medium {
+            background: rgba(230, 144, 70, 0.15);
+            color: #E69046;
+            border: 1px solid rgba(230, 144, 70, 0.3);
+        }
+        
+        .sample-9-card-badge.low {
+            background: rgba(139, 123, 111, 0.15);
+            color: #8B7B6F;
+            border: 1px solid rgba(139, 123, 111, 0.3);
+        }
+        
+        .sample-9-card-title {
+            font-weight: 700;
+            color: var(--color-text-dark);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        
+        .sample-9-card-desc {
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+            line-height: 1.7;
+            flex: 1;
+        }
+        
+        .sample-9-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 12px;
+            border-top: 1px solid var(--color-divider);
+        }
+        
+        .sample-9-card-impact {
+            font-size: 0.75rem;
+            color: var(--color-success);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .sample-9-card-link {
+            color: var(--color-primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-decoration: none;
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+        }
+        
+        .sample-9-card:hover .sample-9-card-link {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="sample-container">
+        <!-- SAMPLE 1: 카드 그리드 레이아웃 -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">📇 샘플 1: 카드 그리드 레이아웃</h2>
+                <p class="sample-description">최적화 제안을 카드 형태로 그리드에 배치합니다. 각 카드는 독립적이고 스캔하기 쉽습니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 스캔 용이</span>
+                    <span class="feature-badge">✓ 높은 시인성</span>
+                    <span class="feature-badge">✓ 우선순위 시각화</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - 카드 그리드 -->
+                <div class="sample-1-wrapper">
+                    <div class="sample-1-title">
+                        개선 제안
+                        <span class="sample-1-count">3개</span>
+                    </div>
+                    <div class="sample-1-grid">
+                        <div class="sample-1-card priority-high">
+                            <div class="sample-1-card-badge">⚠️ 높음</div>
+                            <div class="sample-1-card-title">자동화 불연속 확인</div>
+                            <div class="sample-1-card-desc">Status 필드의 자동화 트리거가 끊어져 있어 연쇄 실행이 중단될 수 있습니다.</div>
+                            <div class="sample-1-card-action">→ 자동화 검토하기</div>
+                        </div>
+                        <div class="sample-1-card priority-medium">
+                            <div class="sample-1-card-badge">💡 중간</div>
+                            <div class="sample-1-card-title">롤업 최적화</div>
+                            <div class="sample-1-card-desc">Tasks 테이블의 롤업 함수를 단순화하면 쿼리 성능이 50% 향상됩니다.</div>
+                            <div class="sample-1-card-action">→ 롤업 변경하기</div>
+                        </div>
+                        <div class="sample-1-card priority-low">
+                            <div class="sample-1-card-badge">ℹ️ 낮음</div>
+                            <div class="sample-1-card-title">필드명 명확화</div>
+                            <div class="sample-1-card-desc">DueDate 필드명을 "프로젝트 완료일"로 변경하면 가독성이 향상됩니다.</div>
+                            <div class="sample-1-card-action">→ 필드명 변경하기</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAMPLE 2: 탭 기반 필터링 -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">🏷️ 샘플 2: 탭 기반 필터링</h2>
+                <p class="sample-description">우선순위별로 탭을 나누어 필요한 항목에만 집중할 수 있습니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 필터링 기능</span>
+                    <span class="feature-badge">✓ 집중력 향상</span>
+                    <span class="feature-badge">✓ 우선순위 분류</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - 탭 기반 -->
+                <div class="sample-2-wrapper">
+                    <div class="sample-2-tabs">
+                        <button class="sample-2-tab active">모두 <span style="color: var(--color-primary); font-weight: 700;">3</span></button>
+                        <button class="sample-2-tab">긴급 <span style="color: #AA442F; font-weight: 700;">1</span></button>
+                        <button class="sample-2-tab">중요 <span style="color: #E69046; font-weight: 700;">1</span></button>
+                        <button class="sample-2-tab">참고 <span style="color: #8B7B6F; font-weight: 700;">1</span></button>
+                    </div>
+                    <div class="sample-2-content">
+                        <div class="sample-2-item priority-high">
+                            <div class="sample-2-item-icon">⚠️</div>
+                            <div class="sample-2-item-content">
+                                <div class="sample-2-item-title">자동화 불연속 확인</div>
+                                <div class="sample-2-item-desc">Status 필드의 자동화 트리거가 끊어져 있어 연쇄 실행이 중단될 수 있습니다.</div>
+                                <a href="#" class="sample-2-item-action">자동화 검토 →</a>
+                            </div>
+                        </div>
+                        <div class="sample-2-item priority-medium">
+                            <div class="sample-2-item-icon">💡</div>
+                            <div class="sample-2-item-content">
+                                <div class="sample-2-item-title">롤업 최적화</div>
+                                <div class="sample-2-item-desc">Tasks 테이블의 롤업 함수를 단순화하면 쿼리 성능이 50% 향상됩니다.</div>
+                                <a href="#" class="sample-2-item-action">롤업 변경 →</a>
+                            </div>
+                        </div>
+                        <div class="sample-2-item priority-low">
+                            <div class="sample-2-item-icon">ℹ️</div>
+                            <div class="sample-2-item-content">
+                                <div class="sample-2-item-title">필드명 명확화</div>
+                                <div class="sample-2-item-desc">DueDate 필드명을 "프로젝트 완료일"로 변경하면 가독성이 향상됩니다.</div>
+                                <a href="#" class="sample-2-item-action">필드명 변경 →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAMPLE 3: 체크리스트 스타일 -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">✅ 샘플 3: 체크리스트 스타일</h2>
+                <p class="sample-description">액션 가능한 체크리스트로 제시하여 실행 추적이 용이합니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 액션 기반</span>
+                    <span class="feature-badge">✓ 진행률 표시</span>
+                    <span class="feature-badge">✓ 완료 추적</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - 체크리스트 -->
+                <div class="sample-3-wrapper">
+                    <div class="sample-3-header">
+                        <div class="sample-3-progress">60%</div>
+                        <div class="sample-3-progress-text">
+                            <div class="sample-3-progress-label">개선 완료율</div>
+                            <div class="sample-3-progress-bar">
+                                <div class="sample-3-progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="sample-3-list">
+                        <div class="sample-3-item completed">
+                            <div class="sample-3-checkbox">✓</div>
+                            <div class="sample-3-item-content">
+                                <div class="sample-3-item-title">자동화 불연속 확인</div>
+                                <div class="sample-3-item-desc">Status 필드의 자동화 트리거를 재설정했습니다</div>
+                            </div>
+                        </div>
+                        <div class="sample-3-item completed">
+                            <div class="sample-3-checkbox">✓</div>
+                            <div class="sample-3-item-content">
+                                <div class="sample-3-item-title">롤업 최적화</div>
+                                <div class="sample-3-item-desc">Tasks 테이블의 롤업 함수를 단순화했습니다</div>
+                            </div>
+                        </div>
+                        <div class="sample-3-item">
+                            <div class="sample-3-checkbox"></div>
+                            <div class="sample-3-item-content">
+                                <div class="sample-3-item-title">필드명 명확화</div>
+                                <div class="sample-3-item-desc">DueDate 필드명을 변경할 예정입니다</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAMPLE 4: 가장 중요한 항목 강조 -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">⭐ 샘플 4: 가장 중요한 항목 강조</h2>
+                <p class="sample-description">가장 중요한 제안을 상단에 강조하여 즉시 주목을 끌 수 있습니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 시각적 우선순위</span>
+                    <span class="feature-badge">✓ 빠른 결정</span>
+                    <span class="feature-badge">✓ CTA 강조</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - 강조 레이아웃 -->
+                <div class="sample-4-wrapper">
+                    <div class="sample-4-top-item">
+                        <span class="sample-4-top-badge">⚠️ 즉시 조치 필요</span>
+                        <div class="sample-4-top-title">자동화 불연속 확인</div>
+                        <div class="sample-4-top-desc">Status 필드의 자동화 트리거가 끊어져 있어 연쇄 실행이 중단될 수 있습니다. 이 문제를 해결하면 데이터 무결성이 복구됩니다.</div>
+                        <a href="#" class="sample-4-top-action">지금 자동화 검토하기 →</a>
+                    </div>
+                    
+                    <div class="sample-4-divider">다른 개선 사항</div>
+                    
+                    <div class="sample-4-other-items">
+                        <div class="sample-4-other-item">
+                            <div class="sample-4-other-item-title">💡 롤업 최적화</div>
+                            <div class="sample-4-other-item-desc">Tasks 테이블의 롤업 함수를 단순화하면 쿼리 성능이 50% 향상됩니다.</div>
+                        </div>
+                        <div class="sample-4-other-item">
+                            <div class="sample-4-other-item-title">ℹ️ 필드명 명확화</div>
+                            <div class="sample-4-other-item-desc">DueDate 필드명을 "프로젝트 완료일"로 변경하면 가독성이 향상됩니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAMPLE 5: 흐름도 스타일 -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">📊 샘플 5: 흐름도 스타일</h2>
+                <p class="sample-description">순차적인 개선 단계를 흐름도로 시각화합니다. 각 단계의 효과를 명확히 제시합니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 단계별 안내</span>
+                    <span class="feature-badge">✓ 효과 설명</span>
+                    <span class="feature-badge">✓ 로드맵 제시</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - 흐름도 -->
+                <div class="sample-5-wrapper">
+                    <div class="sample-5-flow">
+                        <div class="sample-5-flow-item">
+                            <div class="sample-5-flow-number">1</div>
+                            <div class="sample-5-flow-content">
+                                <div class="sample-5-flow-title">자동화 불연속 확인</div>
+                                <div class="sample-5-flow-desc">Status 필드의 자동화 트리거가 끊어져 있어 연쇄 실행이 중단된 상태입니다.</div>
+                                <div class="sample-5-flow-benefit">✓ 예상 효과: 데이터 무결성 복구</div>
+                            </div>
+                        </div>
+                        <div class="sample-5-flow-item">
+                            <div class="sample-5-flow-number">2</div>
+                            <div class="sample-5-flow-content">
+                                <div class="sample-5-flow-title">롤업 최적화</div>
+                                <div class="sample-5-flow-desc">Tasks 테이블의 롤업 함수를 단순화하여 쿼리 성능을 개선합니다.</div>
+                                <div class="sample-5-flow-benefit">✓ 예상 효과: 성능 50% 향상</div>
+                            </div>
+                        </div>
+                        <div class="sample-5-flow-item">
+                            <div class="sample-5-flow-number">3</div>
+                            <div class="sample-5-flow-content">
+                                <div class="sample-5-flow-title">필드명 명확화</div>
+                                <div class="sample-5-flow-desc">DueDate 필드명을 "프로젝트 완료일"로 변경하여 가독성을 개선합니다.</div>
+                                <div class="sample-5-flow-benefit">✓ 예상 효과: 사용자 만족도 상향</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAMPLE 6: Notion 타임라인 (컴팩트) -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">⏱️ 샘플 6: Notion 스타일 타임라인</h2>
+                <p class="sample-description">Notion의 미니멀한 타임라인 스타일. 큰 여백으로 각 항목을 명확히 분리합니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 미니멀 디자인</span>
+                    <span class="feature-badge">✓ 높은 가독성</span>
+                    <span class="feature-badge">✓ Notion 스러움</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - Notion 스타일 -->
+                <div class="sample-6-wrapper">
+                    <div class="sample-6-item">
+                        <div class="sample-6-icon">⚠️</div>
+                        <div class="sample-6-content">
+                            <h4>자동화 불연속 확인</h4>
+                            <p>Status 필드의 자동화 트리거가 끊어져 있어 연쇄 실행이 중단될 수 있습니다.</p>
+                            <div class="sample-6-tags">
+                                <span class="sample-6-tag high">긴급</span>
+                                <span class="sample-6-tag">자동화</span>
+                            </div>
+                        </div>
+                        <div class="sample-6-action">→</div>
+                    </div>
+                    <div class="sample-6-item">
+                        <div class="sample-6-icon">💡</div>
+                        <div class="sample-6-content">
+                            <h4>롤업 최적화</h4>
+                            <p>Tasks 테이블의 롤업 함수를 단순화하면 쿼리 성능이 50% 향상됩니다.</p>
+                            <div class="sample-6-tags">
+                                <span class="sample-6-tag medium">중형</span>
+                                <span class="sample-6-tag">성능</span>
+                            </div>
+                        </div>
+                        <div class="sample-6-action">→</div>
+                    </div>
+                    <div class="sample-6-item">
+                        <div class="sample-6-icon">ℹ️</div>
+                        <div class="sample-6-content">
+                            <h4>필드명 명확화</h4>
+                            <p>DueDate 필드명을 "프로젝트 완료일"로 변경하면 가독성이 향상됩니다.</p>
+                            <div class="sample-6-tags">
+                                <span class="sample-6-tag low">낮음</span>
+                                <span class="sample-6-tag">UX</span>
+                            </div>
+                        </div>
+                        <div class="sample-6-action">→</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAMPLE 7: 우선순위 그룹 섹션 -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">📑 샘플 7: 우선순위별 그룹화</h2>
+                <p class="sample-description">각 우선순위별로 섹션을 분리하여 사용자가 필요한 항목에만 집중할 수 있습니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 우선순위 분류</span>
+                    <span class="feature-badge">✓ 빠른 스캔</span>
+                    <span class="feature-badge">✓ 집중력 향상</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - 그룹화 -->
+                <div class="sample-7-wrapper">
+                    <!-- 높음 우선순위 -->
+                    <div class="sample-7-group">
+                        <div class="sample-7-group-header">
+                            <span class="sample-7-group-icon">🚨</span>
+                            <span>긴급 조치</span>
+                            <span class="sample-7-group-count">1</span>
+                        </div>
+                        <div class="sample-7-group-items">
+                            <div class="sample-7-group-item">
+                                <div class="sample-7-group-item-number">1</div>
+                                <div class="sample-7-group-item-text">
+                                    <div class="sample-7-group-item-title">자동화 불연속 확인</div>
+                                    <div class="sample-7-group-item-desc">Status 필드의 자동화 트리거가 끊어져 있습니다</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 중간 우선순위 -->
+                    <div class="sample-7-group">
+                        <div class="sample-7-group-header">
+                            <span class="sample-7-group-icon">💡</span>
+                            <span>권장 사항</span>
+                            <span class="sample-7-group-count">1</span>
+                        </div>
+                        <div class="sample-7-group-items">
+                            <div class="sample-7-group-item">
+                                <div class="sample-7-group-item-number">1</div>
+                                <div class="sample-7-group-item-text">
+                                    <div class="sample-7-group-item-title">롤업 최적화</div>
+                                    <div class="sample-7-group-item-desc">Tasks 테이블의 롤업 함수를 단순화하세요</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 낮음 우선순위 -->
+                    <div class="sample-7-group">
+                        <div class="sample-7-group-header">
+                            <span class="sample-7-group-icon">📝</span>
+                            <span>참고</span>
+                            <span class="sample-7-group-count">1</span>
+                        </div>
+                        <div class="sample-7-group-items">
+                            <div class="sample-7-group-item">
+                                <div class="sample-7-group-item-number">1</div>
+                                <div class="sample-7-group-item-text">
+                                    <div class="sample-7-group-item-title">필드명 명확화</div>
+                                    <div class="sample-7-group-item-desc">DueDate 필드명 변경을 고려해보세요</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAMPLE 8: 인라인 태그 리스트 -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">🏷️ 샘플 8: 인라인 태그 스타일</h2>
+                <p class="sample-description">Notion처럼 각 항목에 인라인 우선순위 태그를 배치합니다. 모던하고 깔끔합니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 모던 느낌</span>
+                    <span class="feature-badge">✓ 우아한 디자인</span>
+                    <span class="feature-badge">✓ 명확한 태그</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - 인라인 태그 -->
+                <div class="sample-8-wrapper">
+                    <div class="sample-8-items">
+                        <div class="sample-8-item">
+                            <div class="sample-8-item-header">
+                                <span class="sample-8-item-title">⚠️ 자동화 불연속 확인</span>
+                                <span class="sample-8-item-badge high">긴급</span>
+                            </div>
+                            <div class="sample-8-item-desc">Status 필드의 자동화 트리거가 끊어져 있어 연쇄 실행이 중단될 수 있습니다. 지금 바로 확인하고 수정하세요.</div>
+                        </div>
+                        <div class="sample-8-item">
+                            <div class="sample-8-item-header">
+                                <span class="sample-8-item-title">💡 롤업 최적화</span>
+                                <span class="sample-8-item-badge medium">중형</span>
+                            </div>
+                            <div class="sample-8-item-desc">Tasks 테이블의 롤업 함수를 단순화하면 쿼리 성능이 50% 향상됩니다. 주간 유지보수 시간에 진행하세요.</div>
+                        </div>
+                        <div class="sample-8-item">
+                            <div class="sample-8-item-header">
+                                <span class="sample-8-item-title">ℹ️ 필드명 명확화</span>
+                                <span class="sample-8-item-badge low">낮음</span>
+                            </div>
+                            <div class="sample-8-item-desc">DueDate 필드명을 "프로젝트 완료일"로 변경하면 팀원들이 더 쉽게 이해할 수 있을 것 같습니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SAMPLE 9: 타일 카드 레이아웃 -->
+        <div class="sample-section">
+            <div class="sample-header">
+                <h2 class="sample-title">🎯 샘플 9: 타일 카드 (Modern Compact)</h2>
+                <p class="sample-description">각 제안을 우아한 타일 카드로 표현합니다. 호버 효과로 상호작용성을 높입니다.</p>
+                <div class="sample-features">
+                    <span class="feature-badge">✓ 우아한 디자인</span>
+                    <span class="feature-badge">✓ 카드 기반</span>
+                    <span class="feature-badge">✓ 인터랙티브</span>
+                </div>
+            </div>
+            
+            <div class="chain-sections-wrapper-common">
+                <!-- Timeline (좌측) -->
+                <div class="chain-timeline">
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">1</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">📌 시작점</div>
+                            <div class="chain-timeline-text">Projects 데이터베이스의 "Status" 필드를 통한 참조 시작 (깊이: <strong>4단계</strong>)</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">2</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>Tasks</strong> 필드 → 1250개 레코드에서 실행</div>
+                        </div>
+                    </div>
+                    <div class="chain-timeline-item">
+                        <div class="chain-timeline-dot">3</div>
+                        <div class="chain-timeline-content">
+                            <div class="chain-timeline-title">🔗 참조</div>
+                            <div class="chain-timeline-text"><strong>DueDate</strong> 필드 → 참조</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 최적화 제안 (우측) - 타일 카드 -->
+                <div class="sample-9-wrapper">
+                    <div class="sample-9-card">
+                        <div class="sample-9-card-top">
+                            <span class="sample-9-card-icon">⚠️</span>
+                            <span class="sample-9-card-badge high">긴급</span>
+                        </div>
+                        <div class="sample-9-card-title">자동화 불연속 확인</div>
+                        <div class="sample-9-card-desc">Status 필드의 자동화 트리거가 끊어져 있어 연쇄 실행이 중단될 수 있습니다.</div>
+                        <div class="sample-9-card-footer">
+                            <span class="sample-9-card-impact">✓ 데이터 무결성 복구</span>
+                            <a href="#" class="sample-9-card-link">확인 →</a>
+                        </div>
+                    </div>
+                    
+                    <div class="sample-9-card">
+                        <div class="sample-9-card-top">
+                            <span class="sample-9-card-icon">💡</span>
+                            <span class="sample-9-card-badge medium">중형</span>
+                        </div>
+                        <div class="sample-9-card-title">롤업 최적화</div>
+                        <div class="sample-9-card-desc">Tasks 테이블의 롤업 함수를 단순화하여 쿼리 성능을 개선합니다.</div>
+                        <div class="sample-9-card-footer">
+                            <span class="sample-9-card-impact">✓ 성능 50% 향상</span>
+                            <a href="#" class="sample-9-card-link">편집 →</a>
+                        </div>
+                    </div>
+                    
+                    <div class="sample-9-card">
+                        <div class="sample-9-card-top">
+                            <span class="sample-9-card-icon">ℹ️</span>
+                            <span class="sample-9-card-badge low">낮음</span>
+                        </div>
+                        <div class="sample-9-card-title">필드명 명확화</div>
+                        <div class="sample-9-card-desc">DueDate 필드명을 "프로젝트 완료일"로 변경하여 가독성을 개선합니다.</div>
+                        <div class="sample-9-card-footer">
+                            <span class="sample-9-card-impact">✓ UX 개선</span>
+                            <a href="#" class="sample-9-card-link">변경 →</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

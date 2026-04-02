@@ -65,7 +65,8 @@
     color: var(--color-accent);
 }
 
-.nav-item.active {
+.nav-item.active,
+.nav-item.is-active {
     background: var(--color-secondary);
     color: var(--color-primary);
     font-weight: 600;
@@ -113,7 +114,8 @@
     border-left-color: var(--color-accent);
 }
 
-.nav-sub-item.active {
+.nav-sub-item.active,
+.nav-sub-item.is-active {
     background: rgba(200, 118, 95, 0.15);
     color: var(--color-primary);
     border-left-color: var(--color-primary);
@@ -183,6 +185,11 @@
 
 .view-section {
     animation: fadeIn var(--transition-normal);
+}
+
+/* is-hidden이 없을 때만 표시 */
+.view-section:not(.is-hidden) {
+    display: block;
 }
 
 @keyframes fadeIn {

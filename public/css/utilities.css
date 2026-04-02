@@ -61,3 +61,43 @@
 ::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, var(--color-primary-deep), #D4A574);
 }
+
+/* ============ 표시/숨김 상태 ============ */
+.is-hidden {
+    display: none !important;
+}
+
+.is-visible {
+    display: block !important;
+}
+
+/* ============ 활성/비활성 상태 ============ */
+.is-active {
+    /* 상태별 스타일은 각 컴포넌트에서 정의 */
+}
+
+.is-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: not-allowed;
+}
+
+/* ============ 접근성 ============ */
+/* 스크린 리더 전용 텍스트 */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* 포커스 가시성 개선 */
+:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}

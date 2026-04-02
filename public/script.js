@@ -1,4 +1,130 @@
-// ============ 1. 상태 관리 ============
+// ============ 유틸리티 ============
+/**
+ * DOMUtils - DOM 조작 유틸리티
+ * 책임: 클래스 및 속성 관리 헬퍼 함수 제공
+ */
+const DOMUtils = {
+    /**
+     * 요소를 숨김 (is-hidden 클래스 추가)
+     */
+    hide(element) {
+        if (element) element.classList.add('is-hidden');
+    },
+
+    /**
+     * 요소를 표시 (is-hidden 클래스 제거)
+     */
+    show(element) {
+        if (element) element.classList.remove('is-hidden');
+    },
+
+    /**
+     * 요소 표시 상태 토글
+     */
+    toggle(element) {
+        if (element) element.classList.toggle('is-hidden');
+    },
+
+    /**
+     * 요소를 활성화 (is-active 클래스 추가)
+     */
+    setActive(element) {
+        if (element) element.classList.add('is-active');
+    },
+
+    /**
+     * 요소를 비활성화 (is-active 클래스 제거)
+     */
+    removeActive(element) {
+        if (element) element.classList.remove('is-active');
+    },
+
+    /**
+     * 요소 그룹 중에서 활성 클래스 변경
+     */
+    setActiveInGroup(elements, targetElement) {
+        elements.forEach(el => this.removeActive(el));
+        if (targetElement) this.setActive(targetElement);
+    },
+
+    /**
+     * 요소 그룹을 모두 숨김
+     */
+    hideAll(selector) {
+        document.querySelectorAll(selector).forEach(el => this.hide(el));
+    },
+
+    /**
+     * 요소 그룹을 모두 표시
+     */
+    showAll(selector) {
+        document.querySelectorAll(selector).forEach(el => this.show(el));
+    }
+};
+
+// ============ 이벤트 위임 ============
+/**
+ * EventDelegator - 이벤트 위임 관리
+ * 책임: 데이터 속성 기반 이벤트 처리
+ */
+const EventDelegator = {
+    init() {
+        // 클릭 이벤트 위임
+        document.addEventListener('click', (event) => this.handleClick(event));
+        
+        // 검색 입력 이벤트 (엔터 키)
+        document.addEventListener('keyup', (event) => this.handleKeyup(event));
+    },
+
+    handleClick(event) {
+        const target = event.target.closest('[data-action]') || event.target.closest('[data-view]') || event.target.closest('[data-tab]');
+        
+        if (!target) return;
+        
+        const action = target.dataset.action;
+        const view = target.dataset.view;
+        const tab = target.dataset.tab;
+
+        // 데이터 속성에 따른 처리
+        if (action === 'search') {
+            EventHandler.onDatabaseSearch();
+        } else if (action === 'refresh-databases') {
+            DatabaseManager.refreshDatabases();
+        } else if (action === 'prev-page') {
+            EventHandler.previousDatabasePage();
+        } else if (action === 'next-page') {
+            EventHandler.nextDatabasePage();
+        } else if (action === 'refresh-current') {
+            EventHandler.refreshCurrentTab();
+        } else if (action === 'close-modal') {
+            const modal = document.getElementById('optimizationModal');
+            if (modal) modal.close();
+        } else if (view === 'databases') {
+            EventHandler.switchView('databases');
+            // 확장 아이콘 상태 업데이트
+            const expandIcon = document.getElementById('databasesExpandIcon');
+            if (expandIcon.classList.contains('is-hidden')) {
+                DOMUtils.show(expandIcon);
+                DOMUtils.show(document.getElementById('databasesTabs'));
+            } else {
+                DOMUtils.hide(expandIcon);
+                DOMUtils.hide(document.getElementById('databasesTabs'));
+            }
+            event.stopPropagation();
+        } else if (tab === 'analysis') {
+            app.switchTab('analysis');
+            event.stopPropagation();
+        }
+    },
+
+    handleKeyup(event) {
+        if (event.target.id === 'databaseSearchInput' && event.key === 'Enter') {
+            EventHandler.onDatabaseSearch();
+        }
+    }
+};
+
+// ============ 상태 관리 ============
 /**
  * AppState - 애플리케이션 전역 상태 관리
  * 책임: 앱의 모든 상태 데이터를 관리
@@ -301,7 +427,7 @@ const Constants = {
  */
 const UIRenderer = {
     renderDatabaseCard(db) {
-        return `<div class="database-card" onclick="app.selectDatabase('${db.id}', '${Formatter.escapeHtml(db.title)}')">
+        return `<div class="database-card" data-db-id="${db.id}">
             <div class="database-icon">${db.icon?.emoji || '📊'}</div>
             <div class="database-title">${Formatter.escapeHtml(db.title)}</div>
             <div class="database-meta">
@@ -320,6 +446,16 @@ const UIRenderer = {
         const endIdx = startIdx + AppState.databasePageSize;
         const paginatedDatabases = databases.slice(startIdx, endIdx);
         container.innerHTML = paginatedDatabases.map(db => this.renderDatabaseCard(db)).join('');
+        
+        // 데이터베이스 카드 클릭 이벤트 위임
+        container.addEventListener('click', (e) => {
+            const card = e.target.closest('.database-card');
+            if (card) {
+                const dbId = card.dataset.dbId;
+                const dbTitle = card.querySelector('.database-title').textContent;
+                app.selectDatabase(dbId, dbTitle);
+            }
+        });
     },
 
     updateDatabasesPagination() {
@@ -329,9 +465,9 @@ const UIRenderer = {
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         if (totalPages <= 1) {
-            paginationEl.style.display = 'none';
+            DOMUtils.hide(paginationEl);
         } else {
-            paginationEl.style.display = 'flex';
+            DOMUtils.show(paginationEl);
             pageInfoEl.textContent = `${AppState.databaseCurrentPage} / ${totalPages}`;
             prevBtn.disabled = AppState.databaseCurrentPage === 1;
             nextBtn.disabled = AppState.databaseCurrentPage === totalPages;
@@ -349,41 +485,40 @@ const UIRenderer = {
     },
 
     switchView(viewName) {
-        document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
+        document.querySelectorAll('.view-section').forEach(v => DOMUtils.hide(v));
         const databasesExpandIcon = document.getElementById('databasesExpandIcon');
         const databasesTabs = document.getElementById('databasesTabs');
         const databasesNavBtn = document.getElementById('databasesNavBtn');
         if (viewName === 'databases') {
-            document.getElementById('databasesView').style.display = 'block';
-            databasesNavBtn.classList.add('active');
-            databasesExpandIcon.style.display = 'none';
-            databasesTabs.style.display = 'none';
+            DOMUtils.show(document.getElementById('databasesView'));
+            DOMUtils.setActive(databasesNavBtn);
+            DOMUtils.hide(databasesExpandIcon);
+            DOMUtils.hide(databasesTabs);
         } else {
-            databasesNavBtn.classList.remove('active');
+            DOMUtils.removeActive(databasesNavBtn);
         }
     },
 
     switchTab(tabName) {
         document.querySelectorAll('.nav-sub-item').forEach(btn => {
-            btn.classList.remove('active');
             if (btn.getAttribute('data-tab') === tabName) {
-                btn.classList.add('active');
+                DOMUtils.setActive(btn);
+            } else {
+                DOMUtils.removeActive(btn);
             }
         });
-        document.querySelectorAll('.tab-content').forEach(tab => {
-            tab.style.display = 'none';
-        });
+        document.querySelectorAll('.tab-content').forEach(tab => DOMUtils.hide(tab));
         if (tabName === 'analysis') {
-            document.getElementById('analysisTab').style.display = 'block';
+            DOMUtils.show(document.getElementById('analysisTab'));
         }
     },
 
     showDatabase(databaseTitle) {
-        document.getElementById('databasesView').style.display = 'none';
-        document.getElementById('databaseDetail').style.display = 'block';
+        DOMUtils.hide(document.getElementById('databasesView'));
+        DOMUtils.show(document.getElementById('databaseDetail'));
         document.getElementById('databaseTitle').textContent = databaseTitle;
-        document.getElementById('databasesExpandIcon').style.display = 'inline';
-        document.getElementById('databasesTabs').style.display = 'flex';
+        DOMUtils.show(document.getElementById('databasesExpandIcon'));
+        DOMUtils.show(document.getElementById('databasesTabs'));
     },
 
     copyToClipboard(text, button) {
@@ -601,7 +736,7 @@ const AnalysisRenderer = {
                     <div class="deep-chain-header" onclick="app.toggleDeepChainItem('deep-chain-${idx}')">
                         <div class="deep-chain-header-left">
                             <span class="deep-chain-toggle">▶</span>
-                            <span class="deep-chain-depth-badge" style="background-color: ${chain.depth >= 5 ? '#dc2626' : chain.depth >= 4 ? '#ea580c' : '#0ea5e9'};">${chain.depth}단계</span>
+                            <span class="deep-chain-depth-badge ${chain.depth >= 5 ? 'depth-critical' : chain.depth >= 4 ? 'depth-warning' : 'depth-normal'}">${chain.depth}단계</span>
                             <span class="deep-chain-path-text" title="${chain.path ? chain.path.map(node => `${node.db}.${node.field}`).join(' → ') : ''}">${chain.sourceDb}.${chain.sourceField}</span>
                         </div>
                         <div class="deep-chain-header-right">
@@ -1139,7 +1274,11 @@ function showOptimizationModal(title, problem, solution, icon, priority) {
 
 function closeOptimizationModal() {
     const modal = document.getElementById('optimizationModal');
-    modal.classList.remove('show', 'high', 'medium', 'low');
+    if (modal.close) {
+        modal.close();
+    } else {
+        modal.classList.remove('show', 'high', 'medium', 'low');
+    }
 }
 
 // ESC 키로 모달 닫기
@@ -1221,6 +1360,9 @@ const EventHandler = {
 // ============ 11. 메인 앱 (컨트롤러) ============
 const app = {
     async init() {
+        // 이벤트 위임 초기화
+        EventDelegator.init();
+        
         const params = new URLSearchParams(window.location.search);
         if (params.get('error')) {
             NotificationService.showError('로그인에 실패했습니다.');
@@ -1232,18 +1374,18 @@ const app = {
         try {
             const userData = await ApiService.fetchUser();
             if (userData) {
-                document.getElementById('loginView').style.display = 'none';
-                document.getElementById('mainView').style.display = 'flex';
+                DOMUtils.hide(document.getElementById('loginView'));
+                DOMUtils.show(document.getElementById('mainView'));
                 document.getElementById('userName').textContent = userData.workspaceName || userData.ownerName || 'Notion 사용자';
                 DatabaseManager.loadDatabases();
             } else {
-                document.getElementById('loginView').style.display = 'flex';
-                document.getElementById('mainView').style.display = 'none';
+                DOMUtils.show(document.getElementById('loginView'));
+                DOMUtils.hide(document.getElementById('mainView'));
             }
         } catch (error) {
             console.error('사용자 정보 로드 실패:', error);
-            document.getElementById('loginView').style.display = 'flex';
-            document.getElementById('mainView').style.display = 'none';
+            DOMUtils.show(document.getElementById('loginView'));
+            DOMUtils.hide(document.getElementById('mainView'));
         }
     },
 
