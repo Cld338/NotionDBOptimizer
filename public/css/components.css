@@ -172,14 +172,14 @@ tr:last-child td {
 .refresh-button-morphing {
     width: 40px;
     height: 40px;
-    background: #F0E8E0;
-    border: 1px solid #E8DED4;
+    background: #F5E5D8;
+    border: 1px solid #F0D4C4;
     border-radius: 6px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #5A4A42;
+    color: #6B5A45;
     font-size: 20px;
     box-shadow: none;
     position: relative;
@@ -188,7 +188,7 @@ tr:last-child td {
 }
 
 .refresh-button-morphing:hover {
-    background: #E8DED4;
+    background: #F0D4C4;
     border-color: #D8CEC0;
     box-shadow: var(--shadow-xs);
 }

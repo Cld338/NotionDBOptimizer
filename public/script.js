@@ -417,6 +417,11 @@ const Constants = {
         success: '#10b981',
         warning: '#f59e0b',
         error: '#ef4444'
+    },
+    priorityColors: {
+        high: '#D47D3C',
+        medium: '#E8944A',
+        low: '#F5B878'
     }
 };
 
@@ -927,7 +932,7 @@ const AnalysisRenderer = {
         if (issues.factors && issues.factors.length > 0) {
             html += `<div class="performance-factors-section"><h4>⚠️ 성능 영향 요인</h4><div class="factors-list">`;
             issues.factors.forEach(factor => {
-                const factorColor = factor.severity === 'critical' ? '#ef4444' : '#f59e0b';
+                const factorColor = factor.severity === 'critical' ? Constants.priorityColors.high : Constants.priorityColors.medium;
                 html += `<div class="factor-item" style="border-left: 4px solid ${factorColor};">
                     <div class="factor-header"><span class="factor-title">${Formatter.escapeHtml(factor.title)}</span></div>
                     <div class="factor-info">

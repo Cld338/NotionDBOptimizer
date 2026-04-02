@@ -16,6 +16,12 @@
     --color-warning: #f59e0b;           /* Orange - 경고 */
     --color-error: #ef4444;             /* Red - 에러/심각 */
     
+    /* Apricot 팔레트 - 우선순위 시스템 */
+    --priority-high: #D47D3C;           /* High Apricot - 높은 우선순위 */
+    --priority-medium: #E8944A;         /* Medium Apricot - 중간 우선순위 */
+    --priority-low: #F5B878;            /* Light Apricot - 낮은 우선순위 */
+    --solution-bg: #FEF7F0;             /* Warm Apricot Cream - 해결책 배경 */
+    
     --color-text-dark: #5A4A42;         /* Warm Dark Brown 텍스트 */
     --color-text-light: #96745B;        /* 텍스트 부드럽게 */
     --color-text-muted: #8B7355;        /* Warm Gray-Brown 텍스트 */
