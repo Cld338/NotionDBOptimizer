@@ -1058,7 +1058,7 @@ const DatabaseManager = {
 
     async refreshDatabases() {
         const btn = document.getElementById('refreshDatabasesBtn');
-        btn.classList.add('loading');
+        btn.classList.add('loading', 'active');
         btn.disabled = true;
 
         try {
@@ -1069,14 +1069,14 @@ const DatabaseManager = {
         } catch (error) {
             NotificationService.showError('DB 목록 새로고침에 실패했습니다.');
         } finally {
-            btn.classList.remove('loading');
+            btn.classList.remove('loading', 'active');
             btn.disabled = false;
         }
     },
 
     async refreshAnalysis() {
         const btn = document.getElementById('refreshBtn');
-        btn.classList.add('loading');
+        btn.classList.add('loading', 'active');
         btn.disabled = true;
 
         try {
@@ -1086,14 +1086,14 @@ const DatabaseManager = {
         } catch (error) {
             NotificationService.showError('분석 새로고침에 실패했습니다.');
         } finally {
-            btn.classList.remove('loading');
+            btn.classList.remove('loading', 'active');
             btn.disabled = false;
         }
     },
 
     async refreshNetwork() {
         const btn = document.getElementById('refreshBtn');
-        btn.classList.add('loading');
+        btn.classList.add('loading', 'active');
         btn.disabled = true;
 
         try {
@@ -1102,7 +1102,7 @@ const DatabaseManager = {
         } catch (error) {
             NotificationService.showError('네트워크 새로고침에 실패했습니다.');
         } finally {
-            btn.classList.remove('loading');
+            btn.classList.remove('loading', 'active');
             btn.disabled = false;
         }
     }

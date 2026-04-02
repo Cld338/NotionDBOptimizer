@@ -1,4 +1,4 @@
-/* ============ 데이터 크기 제약 섹션 ============ */
+/* ============ 사이즈 제약 섹션 ============ */
 .size-constraints-section {
     margin-top: var(--spacing-xl);
 }
@@ -41,7 +41,7 @@
 }
 
 .message.success::before {
-    content: '✓ ';
+    content: '??';
     color: var(--color-success);
     font-weight: bold;
 }
@@ -51,7 +51,7 @@
 }
 
 .message.error::before {
-    content: '✕ ';
+    content: '??';
     color: var(--color-error);
     font-weight: bold;
 }
@@ -168,7 +168,7 @@
 
 
 
-/* ============ 분석 섹션 내부 간격 개선 ============ */
+/* ============ 분석 ?�션 ?��? 간격 개선 ============ */
 .performance-section {
     display: flex;
     flex-direction: column;
@@ -202,7 +202,7 @@
     gap: var(--spacing-sm);
 }
 
-/* ============ 최적화 기회 그룹화 스타일 ============ */
+/* ============ 최적??기회 그룹???��???============ */
 .opportunities-list {
     display: flex;
     flex-direction: column;
@@ -222,7 +222,7 @@
     justify-content: space-between;
     padding: var(--spacing-sm);
     cursor: pointer;
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.03) 0%, transparent 100%);
+    background: linear-gradient(135deg, rgba(200, 118, 95, 0.03) 0%, transparent 100%);
     transition: var(--transition-normal);
     border-bottom: 1px solid var(--color-divider);
 }
@@ -232,7 +232,7 @@
 }
 
 .opp-group-header:hover {
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.08) 0%, rgba(230, 144, 70, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(200, 118, 95, 0.08) 0%, rgba(200, 118, 95, 0.03) 100%);
 }
 
 .opp-group-left {
@@ -325,7 +325,7 @@
     font-weight: 600;
 }
 
-/* ============ 영향을 받는 속성들 ============ */
+/* ============ ?�향??받는 ?�성??============ */
 .opp-affected-properties {
     margin: var(--spacing-md) 0;
     padding: var(--spacing-md);
@@ -365,7 +365,7 @@
     font-weight: 700;
 }
 
-/* ============ 조치사항 ============ */
+/* ============ 조치?�항 ============ */
 .opp-group-actions ul {
     list-style: none;
     padding: 0;
@@ -380,7 +380,7 @@
 }
 
 .opp-group-actions li:before {
-    content: '→';
+    content: '??';
     position: absolute;
     left: 0;
     color: var(--color-primary);
@@ -401,12 +401,12 @@
     gap: 0;
 }
 
-/* 항상 표시되는 섹션 */
+/* ??�� ?�시?�는 ?�션 */
 .analysis-pinned-section {
     margin-bottom: var(--spacing-xl);
 }
 
-/* 축소 가능한 통계 섹션 */
+/* 축소 가?�한 ?�계 ?�션 */
 .stats-section {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -421,7 +421,7 @@
     font-size: 1.2rem;
 }
 
-/* ============ 성공 체크리스트 ============ */
+/* ============ ?�공 체크리스??============ */
 .success-checklist {
     background: linear-gradient(135deg, rgba(107, 142, 35, 0.08), rgba(107, 142, 35, 0.03));
     border: 1px solid rgba(107, 142, 35, 0.2);
@@ -459,7 +459,7 @@
 }
 
 .checklist-item::before {
-    content: '✓';
+    content: '??';
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -486,7 +486,7 @@
     flex: 1;
 }
 
-/* ============ 정보 툴팁 ============ */
+/* ============ ?�보 ?�팁 ============ */
 .info-tooltip {
     position: relative;
     cursor: help;
@@ -528,7 +528,7 @@
     visibility: visible;
 }
 
-/* ============ 완벽한 상태 (Zero-Error State) ============ */
+/* ============ ?�벽???�태 (Zero-Error State) ============ */
 .zero-error-state {
     background: linear-gradient(135deg, rgba(107, 142, 35, 0.05), rgba(107, 142, 35, 0.02));
     border-radius: var(--radius-lg);
@@ -593,8 +593,8 @@
     color: var(--color-success);
 }
 
-/* ============ 타이포그래피 분리 (Typography) ============ */
-/* 섹션 제목용 - Noto Serif KR */
+/* ============ ?�?�포그래??분리 (Typography) ============ */
+/* ?�션 ?�목??- Noto Serif KR */
 .section-title-heading {
     font-family: var(--font-heading);
     font-weight: 600;
@@ -617,7 +617,7 @@
     color: var(--color-text-dark);
 }
 
-/* 데이터 필드명, 값 표현용 - JetBrains Mono */
+/* ?�이???�드�? �??�현??- JetBrains Mono */
 .data-field-name {
     font-family: var(--font-code);
     font-size: 0.9rem;
@@ -628,7 +628,7 @@
     word-break: break-word;
 }
 
-/* Formula, 코드용 - JetBrains Mono */
+/* Formula, 코드??- JetBrains Mono */
 .formula-code {
     font-family: var(--font-code);
     font-size: 0.9rem;
@@ -639,7 +639,7 @@
     word-break: break-word;
 }
 
-/* 데이터 구조값 - JetBrains Mono */
+/* ?�이??구조�?- JetBrains Mono */
 .data-value-monospace {
     font-family: var(--font-code);
     font-size: 0.9rem;

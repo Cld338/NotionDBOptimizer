@@ -162,7 +162,7 @@
     border-color: var(--color-primary);
     color: var(--color-primary);
     transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(230, 144, 70, 0.15);
+    box-shadow: 0 2px 8px rgba(200, 118, 95, 0.15);
 }
 
 .btn-secondary:active {

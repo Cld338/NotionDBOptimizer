@@ -1,4 +1,4 @@
-/* ============ 컬럼별 분석 ============ */
+/* ============ 컬럼 분석 ============ */
 .columns-analysis {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -49,7 +49,7 @@
     padding-right: var(--spacing-sm);
 }
 
-/* 왼쪽 요약 패널 */
+/* ?�쪽 ?�약 ?�널 */
 .column-summary-panel {
     display: flex;
     flex-direction: column;
@@ -121,7 +121,7 @@
     margin-bottom: var(--spacing-sm);
 }
 
-/* 완성도 등급 분포 - Stacked Bar Chart */
+/* ?�성???�급 분포 - Stacked Bar Chart */
 .grade-distribution {
     display: flex;
     flex-direction: column;
@@ -160,7 +160,7 @@
 }
 
 .grade-segment.good {
-    background: #3b82f6;
+    background: #FBBF24;
 }
 
 .grade-segment.warning {
@@ -197,7 +197,7 @@
 }
 
 .legend-color.good {
-    background: #3b82f6;
+    background: #FBBF24;
 }
 
 .legend-color.warning {
@@ -213,7 +213,7 @@
     color: var(--color-text-light);
 }
 
-/* 컬럼 타입 분포 */
+/* 컬럼 ?�??분포 */
 .type-distribution {
     display: flex;
     flex-direction: column;
@@ -246,7 +246,7 @@
 
 .type-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--color-primary), #3b82f6);
+    background: linear-gradient(90deg, var(--color-primary), #D97706);
     border-radius: 3px;
 }
 
@@ -257,7 +257,7 @@
     color: var(--color-accent);
 }
 
-/* 컬럼 로우 - 단순한 리스트 스타일 */
+/* 컬럼 로우 - ?�순??리스???��???*/
 .column-row {
     background: transparent;
     border: 1px solid var(--color-divider);
@@ -333,7 +333,7 @@
     position: relative;
 }
 
-/* 권장 기준선 (80%) */
+/* 권장 기�???(80%) */
 .completeness-bar::after {
     content: '';
     position: absolute;
@@ -341,7 +341,7 @@
     top: 0;
     bottom: 0;
     width: 1px;
-    background: rgba(230, 144, 70, 0.4);
+    background: rgba(200, 118, 95, 0.3);
 }
 
 .completeness-bar .bar {

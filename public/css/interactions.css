@@ -6,7 +6,7 @@
     flex-shrink: 0;
 }
 
-/* ============ 액션 버튼 및 복사 버튼 ============ */
+/* ============ 섹션 버튼 및 복사 버튼 ============ */
 .action-btn {
     display: inline-flex;
     align-items: center;
@@ -31,7 +31,7 @@
     color: white;
     border-color: var(--color-primary);
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(230, 144, 70, 0.3);
+    box-shadow: 0 4px 12px rgba(200, 118, 95, 0.3);
 }
 
 .copy-btn.copied {
@@ -61,9 +61,9 @@
     border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-/* ============ 액션 버튼 및 상호작용 요소 ============ */
+/* ============ ?�션 버튼 �??�호?�용 ?�소 ============ */
 
-/* 액션 버튼 그룹 */
+/* ?�션 버튼 그룹 */
 .action-buttons {
     display: flex;
     gap: var(--spacing-xs);
@@ -89,7 +89,7 @@
 }
 
 .action-btn:hover {
-    background: rgba(230, 144, 70, 0.1);
+    background: rgba(200, 118, 95, 0.1);
     color: var(--color-primary);
     transform: scale(1.15);
 }
@@ -120,7 +120,7 @@
 
 /* 복사 버튼 */
 
-/* 기회 항목 헤더 - 액션 버튼 배치 */
+/* 기회 ??�� ?�더 - ?�션 버튼 배치 */
 .opp-group-header {
     display: flex;
     align-items: center;
@@ -136,7 +136,7 @@
     z-index: var(--z-dropdown);
 }
 
-/* 경고/이슈 항목 - 액션 버튼 배치 */
+/* 경고/?�슈 ??�� - ?�션 버튼 배치 */
 .warning-item,
 .factor-item {
     position: relative;
@@ -153,7 +153,7 @@
     opacity: 1;
 }
 
-/* ============ 분석 섹션 - 호버 효과 제거 ============ */
+/* ============ 분석 ?�션 - ?�버 ?�과 ?�거 ============ */
 #analysisPlaceholder:hover {
     transform: none !important;
 }

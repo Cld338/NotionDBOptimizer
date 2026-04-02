@@ -53,11 +53,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--color-primary), #E8A95D);
+    background: linear-gradient(180deg, var(--color-primary), #D4A574);
     border-radius: 5px;
     border: 2px solid var(--color-secondary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, var(--color-primary-deep), #E8A95D);
+    background: linear-gradient(180deg, var(--color-primary-deep), #D4A574);
 }

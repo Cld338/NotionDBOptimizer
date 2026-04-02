@@ -108,13 +108,13 @@
 }
 
 .nav-sub-item:hover {
-    background: rgba(230, 144, 70, 0.05);
+    background: rgba(200, 118, 95, 0.08);
     color: var(--color-accent);
     border-left-color: var(--color-accent);
 }
 
 .nav-sub-item.active {
-    background: rgba(230, 144, 70, 0.1);
+    background: rgba(200, 118, 95, 0.15);
     color: var(--color-primary);
     border-left-color: var(--color-primary);
     font-weight: 500;
@@ -228,7 +228,7 @@
 
 .search-box:focus-within {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px rgba(230, 144, 70, 0.1);
+    box-shadow: 0 0 0 2px rgba(200, 118, 95, 0.15);
 }
 
 .search-input {
@@ -244,4 +244,10 @@
 
 .count-text {
     color: var(--color-neutral);
+}
+
+.databases-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
 }

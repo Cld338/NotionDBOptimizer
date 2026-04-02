@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Notion DB 뷰어 - 따뜻한 효율성</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- JetBrains Mono 웹폰트 -->
@@ -118,8 +119,8 @@
                         </div>
                         <div class="databases-info">
                             <span id="databasesCount" class="count-text">총 0개</span>
-                            <button id="refreshDatabasesBtn" class="btn btn-icon" onclick="app.refreshDatabases()" title="DB 목록 새로 고침">
-                                <span class="btn-refresh-icon">🔄</span><span class="btn-refresh-text">새로고침</span>
+                            <button id="refreshDatabasesBtn" class="refresh-button-morphing" onclick="app.refreshDatabases()" title="DB 목록 새로 고침">
+                                <span class="material-icons-outlined">refresh</span>
                             </button>
                         </div>
                     </div>
@@ -152,8 +153,8 @@
                             <h1 id="databaseTitle" class="detail-title"></h1>
                         </div>
                         <div class="detail-actions">
-                            <button id="refreshBtn" class="btn btn-secondary" onclick="app.refreshCurrentTab()" title="데이터 새로 고침">
-                                <span class="btn-refresh-icon">🔄</span><span class="btn-refresh-text">새로 고침</span>
+                            <button id="refreshBtn" class="refresh-button-morphing" onclick="app.refreshCurrentTab()" title="데이터 새로 고침">
+                                <span class="material-icons-outlined">refresh</span>
                             </button>
                         </div>
                     </div>

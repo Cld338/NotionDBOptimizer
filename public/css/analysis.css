@@ -39,7 +39,7 @@
     margin-top: var(--spacing-lg);
 }
 
-/* ============ 성능 분석 내부 요소 - 로우 엠퍼시스 ============ */
+/* ============ 성능 분석 요인 및 기회 - 로우 퍼포먼스 ============ */
 .performance-factors-section {
     margin-top: var(--spacing-xl);
 }
@@ -51,7 +51,7 @@
     gap: var(--spacing-xs);
 }
 
-/* 팩터 아이템 - 단순한 리스트 스타일 */
+/* 팩터 아이템 - 우선순위 리스트 아이템 */
 .factor-item {
     background: transparent;
     border: 1px solid var(--color-divider);
@@ -137,7 +137,7 @@
 
 
 
-/* ============ 주요 통계 섹션 개선 ============ */
+/* ============ 주요 ?�계 ?�션 개선 ============ */
 .stats-section {
     background: var(--color-surface);
     border-radius: var(--radius-lg);
@@ -147,7 +147,7 @@
     border-opacity: 0.1;
 }
 
-/* 품질 점수 강조 섹션 */
+/* ?�질 ?�수 강조 ?�션 */
 .quality-score-hero {
     display: grid;
     grid-template-columns: auto 1fr;
@@ -164,7 +164,7 @@
     gap: var(--spacing-md);
 }
 
-/* 품질 점수 배지 - 원형 */
+/* ?�질 ?�수 배�? - ?�형 */
 .quality-badge {
     display: flex;
     flex-direction: column;
@@ -174,7 +174,7 @@
     height: 90px;
     border-radius: 50%;
     color: white;
-    box-shadow: 0 6px 18px rgba(230, 144, 70, 0.25);
+    box-shadow: 0 6px 18px rgba(200, 118, 95, 0.25);
     font-weight: 700;
     flex-shrink: 0;
 }
@@ -207,7 +207,7 @@
     color: var(--color-text-muted);
 }
 
-/* 우측 미니 통계 */
+/* ?�측 미니 ?�계 */
 .hero-right {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -250,7 +250,7 @@
     color: var(--color-accent);
 }
 
-/* 진행 상태 비교 */
+/* 진행 ?�태 비교 */
 .quality-progress-compare {
     display: flex;
     flex-direction: column;
@@ -289,7 +289,7 @@
     position: relative;
 }
 
-/* 권장 기준선 (80%) */
+/* 권장 기�???(80%) */
 .progress-bar::after {
     content: '';
     position: absolute;
@@ -297,8 +297,8 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: rgba(230, 144, 70, 0.3);
-    border-left: 1px dashed rgba(230, 144, 70, 0.5);
+    background: rgba(200, 118, 95, 0.15);
+    border-left: 1px dashed rgba(200, 118, 95, 0.4);
 }
 
 .progress-fill {
@@ -308,9 +308,9 @@
     box-shadow: inset -1px 0 2px rgba(0, 0, 0, 0.1);
 }
 
-/* ============ 깊은 참조 경로 분석 섹션 - Modern Card Grid Style ============ */
+/* ============ 깊�? 참조 경로 분석 ?�션 - Modern Card Grid Style ============ */
 
-/* ★ 요약 대시보드 (Summary Metrics) */
+/* ???�약 ?�?�보??(Summary Metrics) */
 .deep-chains-metrics {
     margin: 0 0 var(--spacing-lg) 0;
     padding: 0;
@@ -327,8 +327,8 @@
 }
 
 .metric-card {
-    background: linear-gradient(135deg, #ffffff 0%, #fafaf8 100%);
-    border: 1px solid #e5e0db;
+    background: linear-gradient(135deg, #FFFFFF 0%, #F5EDE3 100%);
+    border: 1px solid #E8DED4;
     border-radius: 12px;
     padding: 24px;
     text-align: center;
@@ -344,18 +344,18 @@
     right: -40%;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, rgba(230, 144, 70, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(200, 118, 95, 0.08) 0%, transparent 70%);
     border-radius: 50%;
 }
 
 .metric-card:hover::before {
-    background: radial-gradient(circle, rgba(230, 144, 70, 0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(200, 118, 95, 0.12) 0%, transparent 70%);
 }
 
 .metric-card:hover {
-    border-color: #e69046;
-    background: linear-gradient(135deg, #ffffff 0%, #faf5f0 100%);
-    box-shadow: 0 12px 24px rgba(230, 144, 70, 0.12);
+    border-color: #C8765F;
+    background: linear-gradient(135deg, #FFFFFF 0%, #FEF5F0 100%);
+    box-shadow: 0 12px 24px rgba(200, 118, 95, 0.15);
 }
 
 .metric-card.critical {
@@ -364,8 +364,8 @@
 
 .metric-card.critical:hover {
     border-color: #C8472A;
-    background: linear-gradient(135deg, #fff5f3 0%, #faf7f2 100%);
-    box-shadow: 0 4px 12px rgba(200, 71, 42, 0.15);
+    background: linear-gradient(135deg, #FFF3ED 0%, #FEF8F2 100%);
+    box-shadow: 0 4px 12px rgba(200, 71, 42, 0.18);
 }
 
 .metric-label {
@@ -429,10 +429,10 @@
     gap: 16px;
 }
 
-/* 깊은 참조 경로 아이템 */
+/* 깊�? 참조 경로 ?�이??*/
 .deep-chain-item {
     background: #fafaf8;
-    border: 1px solid #e5e0db;
+    border: 1px solid #dfe8e3;
     border-radius: 12px;
     padding: 20px;
     transition: all 300ms ease;
@@ -441,12 +441,12 @@
 }
 
 .deep-chain-item:hover {
-    background: white;
-    border-color: #e69046;
-    box-shadow: 0 8px 20px rgba(230, 144, 70, 0.1);
+    background: var(--color-hover);
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-lg);
 }
 
-/* 헤더 */
+/* ?�더 */
 .deep-chain-header {
     display: flex;
     align-items: center;
@@ -481,7 +481,7 @@
     flex-shrink: 0;
     width: 28px;
     height: 28px;
-    color: #999;
+    color: var(--color-text-light);
     font-weight: 700;
     background: transparent;
     border-radius: 0;
@@ -491,7 +491,7 @@
 
 .deep-chain-toggle:hover {
     background: transparent;
-    color: #e69046;
+    color: var(--color-primary);
 }
 
 .deep-chain-toggle.expanded {
@@ -509,8 +509,8 @@
     color: white;
     white-space: nowrap;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(230, 144, 70, 0.15);
-    background: linear-gradient(135deg, #e69046 0%, #d17a3d 100%);
+    box-shadow: 0 2px 6px rgba(200, 118, 95, 0.15);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
     text-transform: uppercase;
     letter-spacing: 0.3px;
     position: relative;
@@ -521,7 +521,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
     font-weight: 500;
-    color: #444;
+    color: var(--color-text-dark);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -542,7 +542,7 @@
 
 .deep-chain-info {
     font-size: 13px;
-    color: #999;
+    color: var(--color-text-light);
     white-space: nowrap;
     background: transparent;
     padding: 0;
@@ -554,7 +554,7 @@
 }
 
 .deep-chain-info strong {
-    color: #1a1a1a;
+    color: var(--color-text-dark);
     font-weight: 700;
     display: block;
     font-size: 16px;
@@ -569,9 +569,9 @@
     width: 32px;
     height: 32px;
     border-radius: 8px;
-    border: 1px solid #e5e0db;
+    border: 1px solid var(--color-border);
     background: transparent;
-    color: #999;
+    color: var(--color-text-light);
     cursor: pointer;
     font-weight: 600;
     font-size: 0.9rem;
@@ -581,15 +581,15 @@
 }
 
 .action-btn:hover {
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.08) 0%, rgba(230, 144, 70, 0.04) 100%);
-    border-color: #e69046;
-    color: #e69046;
+    background: var(--color-hover);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
 }
 
 /* 컨텐츠 영역 */
 .deep-chain-content {
-    background: white;
-    border-top: 1px solid #e5e0db;
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
     padding: 24px;
     animation: slideDown 200ms ease;
     border-radius: 0 0 12px 12px;
@@ -618,7 +618,7 @@
     gap: var(--spacing-lg);
 }
 
-/* ===== 타임라인 스타일 ===== */
+/* ===== ?�?�라???��???===== */
 .chain-timeline {
     position: relative;
     padding: 20px 0;
@@ -647,7 +647,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
+    background: var(--color-surface);
     border: 2px solid var(--color-primary);
     border-radius: 50%;
     font-size: 1.2rem;
@@ -660,15 +660,15 @@
 
 .chain-timeline-content {
     flex: 1;
-    background: white;
-    border: 1px solid var(--color-divider);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 20px;
     transition: all 300ms ease;
 }
 
 .chain-timeline-content:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
     border-color: var(--color-primary);
 }
 
@@ -688,7 +688,7 @@
     line-height: 1.6;
 }
 
-/* 섹션 래퍼 - 프리미엄 레이아웃 */
+/* ?�션 ?�퍼 - ?�리미엄 ?�이?�웃 */
 .chain-sections-wrapper {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -697,13 +697,13 @@
     padding: 0;
 }
 
-/* 섹션 래퍼 내 최적화 제안만 배경 추가 - 프리미엄 스타일 */
+/* 섹션 래퍼 - 최적화된 배경 추가 - 프리미엄 스타일 */
 .chain-sections-wrapper .chain-section:last-child {
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.08) 0%, rgba(230, 144, 70, 0.04) 100%);
+    background: linear-gradient(135deg, rgba(200, 118, 95, 0.06) 0%, rgba(200, 118, 95, 0.02) 100%);
     border-radius: 20px;
     padding: 32px;
-    border: 1.5px solid rgba(230, 144, 70, 0.2);
-    box-shadow: 0 8px 24px rgba(230, 144, 70, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    border: 1.5px solid var(--color-border);
+    box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
 }
@@ -715,12 +715,12 @@
     right: -10%;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(230, 144, 70, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(200, 118, 95, 0.08) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
 }
 
-/* 섹션 스타일 - 프리미엄 외형 */
+/* ?�션 ?��???- ?�리미엄 ?�형 */
 .chain-section {
     padding: 24px 28px;
     border-bottom: none;
@@ -740,7 +740,7 @@
     right: -60px;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, rgba(230, 144, 70, 0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(200, 118, 95, 0.06) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     opacity: 0;
@@ -757,7 +757,7 @@
 }
 
 .chain-section:first-child {
-    border-right: 2px solid rgba(230, 144, 70, 0.1);
+    border-right: 2px solid var(--color-border);
     padding-right: 36px;
     position: relative;
 }
@@ -780,7 +780,7 @@
     text-transform: none;
     letter-spacing: -0.4px;
     padding-bottom: 14px;
-    border-bottom: 2px solid rgba(230, 144, 70, 0.08);
+    border-bottom: 2px solid var(--color-border);
     position: relative;
     z-index: 2;
     font-family: var(--font-heading);
@@ -804,20 +804,20 @@
     height: 32px;
     padding: 0 12px;
     margin-left: auto;
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.18) 0%, rgba(230, 144, 70, 0.1) 100%);
+    background: var(--color-secondary);
     color: var(--color-primary);
     border-radius: 16px;
     font-size: 0.82rem;
     font-weight: 800;
     letter-spacing: 0.5px;
-    border: 1.5px solid rgba(230, 144, 70, 0.16);
-    box-shadow: 0 2px 8px rgba(230, 144, 70, 0.1);
+    border: 1.5px solid var(--color-border);
+    box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
 }
 
 .section-title-count:hover {
     transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(230, 144, 70, 0.15);
+    box-shadow: var(--shadow-md);
 }
 
 .chain-section-content {
@@ -849,7 +849,7 @@
     letter-spacing: -0.2px;
 }
 
-/* 데이터베이스 노드 리스트 - 프리미엄 스타일 */
+/* ?�이?�베?�스 ?�드 리스??- ?�리미엄 ?��???*/
 .chain-databases-list {
     display: flex;
     flex-direction: column;
@@ -862,9 +862,9 @@
     align-items: center;
     gap: 14px;
     padding: 14px 16px;
-    background: linear-gradient(135deg, #ffffff 0%, #fafaf9 100%);
+    background: var(--color-surface);
     border-radius: 14px;
-    border: 1.5px solid var(--color-divider);
+    border: 1.5px solid var(--color-border);
     border-left: 4px solid var(--color-primary);
     font-size: 0.82rem;
     transition: all var(--transition-normal) cubic-bezier(0.4, 0, 0.2, 1);
@@ -881,7 +881,7 @@
     right: -40px;
     width: 100px;
     height: 100px;
-    background: radial-gradient(circle, rgba(230, 144, 70, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(200, 118, 95, 0.08) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     opacity: 0;
@@ -889,10 +889,10 @@
 }
 
 .chain-db-node:hover {
-    background: linear-gradient(135deg, #ffffff 0%, #faf7f3 100%);
+    background: var(--color-hover);
     border-color: var(--color-primary);
     border-left-color: var(--color-primary);
-    box-shadow: 0 6px 16px rgba(230, 144, 70, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
 }
 
@@ -946,20 +946,20 @@
     font-weight: 700;
     white-space: nowrap;
     flex-shrink: 0;
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.12) 0%, rgba(230, 144, 70, 0.06) 100%);
+    background: var(--color-secondary);
     color: var(--color-primary);
     letter-spacing: 0.4px;
     position: relative;
     z-index: 2;
     text-transform: uppercase;
-    border: 1px solid rgba(230, 144, 70, 0.15);
-    box-shadow: 0 1px 3px rgba(230, 144, 70, 0.08);
+    border: 1px solid var(--color-border);
+    box-shadow: var(--shadow-xs);
     transition: all var(--transition-fast);
 }
 
 .chain-db-node:hover .chain-field-type {
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.16) 0%, rgba(230, 144, 70, 0.1) 100%);
-    box-shadow: 0 2px 6px rgba(230, 144, 70, 0.12);
+    background: var(--color-secondary);
+    box-shadow: var(--shadow-sm);
 }
 
 .chain-field-name {
@@ -977,9 +977,9 @@
     opacity: 0.8;
 }
 
-/* ===== 최적화 제안 - 모던 리파인 디자인 ===== */
+/* ===== 최적???�안 - 모던 리파???�자??===== */
 
-/* ===== 최적화 제안 - 프리미엄 아코디언 디자인 ===== */
+/* ===== 최적???�안 - ?�리미엄 ?�코?�언 ?�자??===== */
 
 .optimization-tips-container {
     display: flex;
@@ -989,7 +989,7 @@
     margin-top: 18px;
 }
 
-/* 아코디언 아이템 - 프리미엄 & 인터랙티브 */
+/* ?�코?�언 ?�이??- ?�리미엄 & ?�터?�티�?*/
 .optimization-accordion-item {
     background: var(--color-surface);
     border-radius: 14px;
@@ -1013,10 +1013,10 @@
 
 .optimization-accordion-item.active {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.04) 0%, rgba(255, 255, 255, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(200, 118, 95, 0.05) 0%, rgba(255, 255, 255, 0.9) 100%);
 }
 
-/* 우선순위별 색상 - 개선된 시각적 계층 */
+/* ?�선?�위�??�상 - 개선???�각??계층 */
 .optimization-accordion-item.priority-high {
     border-left-color: #AA442F;
 }
@@ -1038,22 +1038,22 @@
 }
 
 .optimization-accordion-item.priority-medium {
-    border-left-color: #E69046;
+    border-left-color: #C8765F;
 }
 
 .optimization-accordion-item.priority-medium:hover {
-    border-color: #E69046;
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.06), rgba(255, 255, 255, 0.95));
+    border-color: #C8765F;
+    background: linear-gradient(135deg, rgba(200, 118, 95, 0.06), rgba(255, 255, 255, 0.95));
 }
 
 .optimization-accordion-item.priority-medium.active {
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.06), rgba(255, 255, 255, 0.95));
-    box-shadow: 0 8px 24px rgba(230, 144, 70, 0.15);
-    border-left-color: #E69046;
+    background: linear-gradient(135deg, rgba(200, 118, 95, 0.06), rgba(255, 255, 255, 0.95));
+    box-shadow: 0 8px 24px rgba(200, 118, 95, 0.15);
+    border-left-color: #C8765F;
 }
 
 .optimization-accordion-item.priority-medium:focus-within {
-    outline: 2px solid #E69046;
+    outline: 2px solid #C8765F;
     outline-offset: 2px;
 }
 
@@ -1077,7 +1077,7 @@
     outline-offset: 2px;
 }
 
-/* 아코디언 헤더 - 개선된 인터랙션 */
+/* ?�코?�언 ?�더 - 개선???�터?�션 */
 .optimization-accordion-header {
     padding: 18px 20px;
     display: flex;
@@ -1098,18 +1098,18 @@
 }
 
 .optimization-accordion-item:hover .optimization-accordion-header {
-    background: rgba(230, 144, 70, 0.02);
+    background: rgba(200, 118, 95, 0.02);
 }
 
 .optimization-accordion-item:active .optimization-accordion-header {
-    background: rgba(230, 144, 70, 0.05);
+    background: rgba(200, 118, 95, 0.05);
 }
 
 .optimization-accordion-item.active .optimization-accordion-header {
-    background: rgba(230, 144, 70, 0.04);
+    background: rgba(200, 118, 95, 0.04);
 }
 
-/* 헤더 콘텐츠 */
+/* ?�더 콘텐�?*/
 .optimization-header-content {
     display: flex;
     align-items: center;
@@ -1117,7 +1117,7 @@
     flex: 1;
 }
 
-/* 우선순위 배지 - 프리미엄 디자인 */
+/* ?�선?�위 배�? - ?�리미엄 ?�자??*/
 .optimization-priority-badge {
     width: 36px;
     height: 36px;
@@ -1144,14 +1144,14 @@
 }
 
 .optimization-accordion-item.priority-medium .optimization-priority-badge {
-    background: linear-gradient(135deg, #E69046 0%, #D97E3A 100%);
+    background: linear-gradient(135deg, #C8765F 0%, #E8A95D 100%);
 }
 
 .optimization-accordion-item.priority-low .optimization-priority-badge {
     background: linear-gradient(135deg, #8B7B6F 0%, #6F6156 100%);
 }
 
-/* 헤더 텍스트 - 명확한 시각적 계층 */
+/* ?�더 ?�스??- 명확???�각??계층 */
 .optimization-header-text {
     flex: 1;
     padding: 0 12px;
@@ -1196,7 +1196,7 @@
     margin: 6px 0 0 0;
 }
 
-/* 토글 아이콘 - 매끈한 애니메이션 */
+/* ?��? ?�이�?- 매끈???�니메이??*/
 .optimization-toggle-icon {
     transition: transform var(--transition-normal) cubic-bezier(0.34, 1.56, 0.64, 1), 
                 color var(--transition-fast),
@@ -1218,7 +1218,7 @@
 }
 
 .optimization-accordion-item.priority-medium .optimization-toggle-icon {
-    color: #E69046;
+    color: #C8765F;
 }
 
 .optimization-accordion-item.priority-low .optimization-toggle-icon {
@@ -1226,16 +1226,16 @@
 }
 
 .optimization-accordion-item:hover .optimization-toggle-icon {
-    background: rgba(230, 144, 70, 0.1);
+    background: rgba(200, 118, 95, 0.1);
     transform: scale(1.1);
 }
 
 .optimization-accordion-item.active .optimization-toggle-icon {
     transform: rotate(180deg) scale(1.1);
-    background: rgba(230, 144, 70, 0.15);
+    background: rgba(200, 118, 95, 0.15);
 }
 
-/* 아코디언 콘텐츠 - 매끈한 전환 */
+/* ?�코?�언 콘텐�?- 매끈???�환 */
 .optimization-accordion-content {
     max-height: 0;
     overflow: hidden;
@@ -1249,14 +1249,14 @@
     max-height: 1000px;
     opacity: 1;
     padding: 22px 20px 20px 20px;
-    border-top: 2px solid rgba(230, 144, 70, 0.1);
+    border-top: 2px solid rgba(200, 118, 95, 0.1);
 }
 
-/* 섹션 - 명확한 시각적 계층 */
+/* ?�션 - 명확???�각??계층 */
 .optimization-section {
     margin-bottom: 20px;
     padding: 16px 0;
-    border-bottom: 1px solid rgba(230, 144, 70, 0.08);
+    border-bottom: 1px solid rgba(200, 118, 95, 0.08);
 }
 
 .optimization-section:last-child {
@@ -1284,13 +1284,13 @@
     font-weight: 500;
 }
 
-/* 빈 상태 - 더 나은 시각적 피드백 */
+/* �??�태 - ???��? ?�각???�드�?*/
 .empty-state {
     padding: 48px 28px;
     text-align: center;
     color: var(--color-text-muted);
     font-size: 0.96rem;
-    background: linear-gradient(135deg, rgba(230, 144, 70, 0.04), rgba(107, 68, 35, 0.02));
+    background: linear-gradient(135deg, rgba(200, 118, 95, 0.05), rgba(107, 68, 35, 0.02));
     border-radius: 14px;
     border: 2px dashed var(--color-border);
     font-weight: 500;
@@ -1301,7 +1301,7 @@
     margin: 0;
 }
 
-/* 링크 버튼 - 프리미엄 CTA */
+/* 링크 버튼 - ?�리미엄 CTA */
 .link-button {
     padding: var(--spacing-sm) var(--spacing-lg);
     background: linear-gradient(135deg, var(--color-primary) 0%, #D17A3D 100%);
@@ -1316,13 +1316,13 @@
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-sm);
-    box-shadow: 0 4px 12px rgba(230, 144, 70, 0.25);
+    box-shadow: 0 4px 12px rgba(200, 118, 95, 0.25);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .link-button:hover {
-    box-shadow: 0 8px 20px rgba(230, 144, 70, 0.35);
+    box-shadow: 0 8px 20px rgba(200, 118, 95, 0.35);
     transform: translateY(-2px);
 }
 
@@ -1331,7 +1331,7 @@
 }
 
 
-/* 반응형 디자인 - 모바일 최적화 */
+/* 반응???�자??- 모바??최적??*/
 @media (max-width: 768px) {
     .chain-sections-wrapper {
         display: grid;
@@ -1341,7 +1341,7 @@
     }
 
     .chain-sections-wrapper .chain-section:last-child {
-        background: linear-gradient(135deg, rgba(230, 144, 70, 0.06), rgba(107, 68, 35, 0.02));
+        background: linear-gradient(135deg, rgba(200, 118, 95, 0.06), rgba(107, 68, 35, 0.02));
         border-radius: 16px;
         padding: 24px;
         margin: 0;
@@ -1415,7 +1415,7 @@
     }
 }
 
-/* 반응형 디자인 - 작은 모바일 (480px 이하) */
+/* 반응???�자??- ?��? 모바??(480px ?�하) */
 @media (max-width: 480px) {
     .chain-sections-wrapper {
         display: grid;
@@ -1425,7 +1425,7 @@
     }
 
     .chain-sections-wrapper .chain-section:last-child {
-        background: linear-gradient(135deg, rgba(230, 144, 70, 0.04), rgba(107, 68, 35, 0.02));
+        background: linear-gradient(135deg, rgba(200, 118, 95, 0.04), rgba(107, 68, 35, 0.02));
         border-radius: 14px;
         padding: 18px;
         margin: 0;
@@ -1568,9 +1568,9 @@
     }
 }
 
-/* ========== 프리미엄 애니메이션 정의 ========== */
+/* ========== ?�리미엄 ?�니메이???�의 ========== */
 
-/* 아코디언 아이템 진입 애니메이션 */
+/* ?�코?�언 ?�이??진입 ?�니메이??*/
 @keyframes slideInUp {
     from {
         opacity: 0;
@@ -1582,7 +1582,7 @@
     }
 }
 
-/* 셀 확장 애니메이션 */
+/* ?�??�장 ?�니메이??*/
 @keyframes expandInHeight {
     from {
         opacity: 0;
@@ -1594,7 +1594,7 @@
     }
 }
 
-/* 배지 팝 애니메이션 */
+/* 배�? ???�니메이??*/
 @keyframes popPulse {
     0% {
         transform: scale(0.95);
@@ -1609,7 +1609,7 @@
     }
 }
 
-/* 하이라이트 샤인 */
+/* ?�이?�이???�인 */
 @keyframes shimmer {
     0% {
         background-position: -1000px 0;
@@ -1619,7 +1619,7 @@
     }
 }
 
-/* 부드러운 입장 애니메이션 */
+/* 부?�러???�장 ?�니메이??*/
 @keyframes fadeInSlideLeft {
     from {
         opacity: 0;
@@ -1631,7 +1631,7 @@
     }
 }
 
-/* 관계 경로 애니메이션 */
+/* 관�?경로 ?�니메이??*/
 @keyframes pathDraw {
     0% {
         stroke-dasharray: 1000;
@@ -1648,7 +1648,7 @@
     }
 }
 
-/* 아코디언 아이템에 애니메이션 적용 */
+/* ?�코?�언 ?�이?�에 ?�니메이???�용 */
 .optimization-accordion-item {
     animation: slideInUp 400ms var(--easing-standard) both;
 }
@@ -1660,7 +1660,7 @@
 .optimization-accordion-item:nth-child(5) { animation-delay: 240ms; }
 .optimization-accordion-item:nth-child(n+6) { animation-delay: 300ms; }
 
-/* DB 노드에 애니메이션 적용 */
+/* DB ?�드???�니메이???�용 */
 .chain-db-node {
     animation: fadeInSlideLeft 300ms var(--easing-smooth) both;
 }
@@ -1670,12 +1670,12 @@
 .chain-db-node:nth-child(3) { animation-delay: 100ms; }
 .chain-db-node:nth-child(n+4) { animation-delay: 150ms; }
 
-/* 입장 애니메이션 - 섹션 제목 */
+/* ?�장 ?�니메이??- ?�션 ?�목 */
 .chain-section-title {
     animation: slideInUp 500ms var(--easing-standard);
 }
 
-/* ========== 최적화 제안 모달 스타일 ========== */
+/* ========== 최적???�안 모달 ?��???========== */
 
 .optimization-modal {
     display: none;

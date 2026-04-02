@@ -100,13 +100,13 @@
     background: var(--color-surface);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    border: 1px solid rgba(230, 144, 70, 0.05);
+    border: 1px solid rgba(200, 118, 95, 0.08);
     transition: all var(--transition-normal);
 }
 
 .card:hover {
     box-shadow: var(--shadow-lg);
-    border-color: rgba(230, 144, 70, 0.1);
+    border-color: rgba(200, 118, 95, 0.15);
 }
 
 .card-header {
@@ -138,7 +138,7 @@ table {
 }
 
 thead {
-    background: linear-gradient(135deg, var(--color-secondary), #F3EDE4);
+    background: linear-gradient(135deg, var(--color-secondary), #F0E8DE);
     border-bottom: 2px solid var(--color-primary);
 }
 
@@ -166,4 +166,67 @@ tr:hover {
 
 tr:last-child td {
     border-bottom: none;
+}
+
+/* ============ 새로고침 버튼 - Notion 스타일 ============ */
+.refresh-button-morphing {
+    width: 40px;
+    height: 40px;
+    background: #F0E8E0;
+    border: 1px solid #E8DED4;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #5A4A42;
+    font-size: 20px;
+    box-shadow: none;
+    position: relative;
+    overflow: visible;
+    transition: all var(--transition-normal);
+}
+
+.refresh-button-morphing:hover {
+    background: #E8DED4;
+    border-color: #D8CEC0;
+    box-shadow: var(--shadow-xs);
+}
+
+.refresh-button-morphing:active {
+    background: #E0D5CB;
+}
+
+.refresh-button-morphing::before {
+    content: none;
+}
+
+.refresh-button-morphing.active .material-icons-outlined {
+    animation: notionRotate 1.2s linear infinite;
+}
+
+@keyframes notionRotate {
+    from { 
+        transform: rotate(0deg); 
+    }
+    to { 
+        transform: rotate(360deg); 
+    }
+}
+
+/* ============ Material Icons 스타일 ============ */
+.material-icons-outlined {
+    font-family: 'Material Icons Outlined' !important;
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
 }
