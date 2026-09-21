@@ -71,49 +71,39 @@ const EventDelegator = {
     init() {
         // 클릭 이벤트 위임
         document.addEventListener('click', (event) => this.handleClick(event));
-        
+
         // 검색 입력 이벤트 (엔터 키)
         document.addEventListener('keyup', (event) => this.handleKeyup(event));
+
+        // 사이드바 데이터베이스 목록 클릭 위임 (컨테이너는 재생성되지 않으므로 한 번만 등록)
+        const databasesList = document.getElementById('databasesList');
+        if (databasesList) {
+            databasesList.addEventListener('click', (event) => {
+                const item = event.target.closest('.db-list-item');
+                if (item) {
+                    app.selectDatabase(item.dataset.dbId, item.dataset.dbTitle);
+                }
+            });
+        }
     },
 
     handleClick(event) {
-        const target = event.target.closest('[data-action]') || event.target.closest('[data-view]') || event.target.closest('[data-tab]');
-        
+        const target = event.target.closest('[data-action]');
+
         if (!target) return;
-        
+
         const action = target.dataset.action;
-        const view = target.dataset.view;
-        const tab = target.dataset.tab;
 
         // 데이터 속성에 따른 처리
         if (action === 'search') {
             EventHandler.onDatabaseSearch();
         } else if (action === 'refresh-databases') {
             DatabaseManager.refreshDatabases();
-        } else if (action === 'prev-page') {
-            EventHandler.previousDatabasePage();
-        } else if (action === 'next-page') {
-            EventHandler.nextDatabasePage();
         } else if (action === 'refresh-current') {
             EventHandler.refreshCurrentTab();
         } else if (action === 'close-modal') {
             const modal = document.getElementById('optimizationModal');
             if (modal) modal.close();
-        } else if (view === 'databases') {
-            EventHandler.switchView('databases');
-            // 확장 아이콘 상태 업데이트
-            const expandIcon = document.getElementById('databasesExpandIcon');
-            if (expandIcon.classList.contains('is-hidden')) {
-                DOMUtils.show(expandIcon);
-                DOMUtils.show(document.getElementById('databasesTabs'));
-            } else {
-                DOMUtils.hide(expandIcon);
-                DOMUtils.hide(document.getElementById('databasesTabs'));
-            }
-            event.stopPropagation();
-        } else if (tab === 'analysis') {
-            app.switchTab('analysis');
-            event.stopPropagation();
         }
     },
 
@@ -136,8 +126,6 @@ const AppState = {
     currentTab: 'data',
     allDatabases: [],
     filteredDatabases: [],
-    databasePageSize: 16,
-    databaseCurrentPage: 1,
 
     setCurrentDatabase(databaseId, properties = null) {
         this.currentDatabaseId = databaseId;
@@ -152,7 +140,6 @@ const AppState = {
     setDatabaseList(databases) {
         this.allDatabases = databases;
         this.filteredDatabases = [...databases];
-        this.databaseCurrentPage = 1;
     },
 
     filterDatabases(searchText) {
@@ -160,20 +147,6 @@ const AppState = {
         this.filteredDatabases = this.allDatabases.filter(db =>
             db.title.toLowerCase().includes(lowerSearch)
         );
-        this.databaseCurrentPage = 1;
-    },
-
-    nextDatabasePage() {
-        const totalPages = Math.ceil(this.filteredDatabases.length / this.databasePageSize);
-        if (this.databaseCurrentPage < totalPages) {
-            this.databaseCurrentPage++;
-        }
-    },
-
-    previousDatabasePage() {
-        if (this.databaseCurrentPage > 1) {
-            this.databaseCurrentPage--;
-        }
     }
 };
 
@@ -345,16 +318,17 @@ const ApiService = {
 const SkeletonRenderer = {
     renderDatabases() {
         const container = document.getElementById('databasesList');
-        let html = '<div class="skeleton-grid">';
-        for (let i = 0; i < 4; i++) {
-            html += `<div class="skeleton-database-card">
+        let html = '';
+        for (let i = 0; i < 5; i++) {
+            html += `<div class="skeleton-db-list-item">
                 <div class="skeleton-icon skeleton"></div>
-                <div class="skeleton-text lg skeleton"></div>
-                <div class="skeleton-text skeleton"></div>
-                <div class="skeleton-text skeleton"></div>
+                <div class="skeleton-db-list-item-text">
+                    <div class="skeleton-text skeleton"></div>
+                    <div class="skeleton-text sm skeleton"></div>
+                </div>
             </div>`;
         }
-        container.innerHTML = html + '</div>';
+        container.innerHTML = html;
     },
 
     renderAnalysis() {
@@ -405,14 +379,14 @@ const SkeletonRenderer = {
  */
 const Constants = {
     colors: {
-        success: '#10b981',
-        warning: '#f59e0b',
-        error: '#ef4444'
+        success: '#34D399',
+        warning: '#FBBF24',
+        error: '#F87171'
     },
     priorityColors: {
-        high: '#D47D3C',
-        medium: '#E8944A',
-        low: '#F5B878'
+        high: '#F97066',
+        medium: '#FBBF24',
+        low: '#60A5FA'
     }
 };
 
@@ -423,11 +397,12 @@ const Constants = {
  */
 const UIRenderer = {
     renderDatabaseCard(db) {
-        return `<div class="database-card" data-db-id="${db.id}">
-            <div class="database-icon">${db.icon?.emoji || '📊'}</div>
-            <div class="database-title">${Formatter.escapeHtml(db.title)}</div>
-            <div class="database-meta">
-                <div>수정: ${new Date(db.last_edited_time).toLocaleDateString('ko-KR')}</div>
+        const isActive = db.id === AppState.currentDatabaseId;
+        return `<div class="db-list-item${isActive ? ' is-active' : ''}" data-db-id="${db.id}" data-db-title="${Formatter.escapeHtml(db.title)}">
+            <div class="db-list-item-icon">${db.icon?.emoji || '◇'}</div>
+            <div class="db-list-item-info">
+                <div class="db-list-item-title">${Formatter.escapeHtml(db.title)}</div>
+                <div class="db-list-item-meta">${new Date(db.last_edited_time).toLocaleDateString('ko-KR')}</div>
             </div>
         </div>`;
     },
@@ -435,86 +410,31 @@ const UIRenderer = {
     renderDatabases(databases) {
         const container = document.getElementById('databasesList');
         if (databases.length === 0) {
-            container.innerHTML = '<div class="error">사용 가능한 데이터베이스가 없습니다.</div>';
+            container.innerHTML = '<div class="sidebar-empty">사용 가능한 데이터베이스가 없습니다.</div>';
             return;
         }
-        const startIdx = (AppState.databaseCurrentPage - 1) * AppState.databasePageSize;
-        const endIdx = startIdx + AppState.databasePageSize;
-        const paginatedDatabases = databases.slice(startIdx, endIdx);
-        container.innerHTML = paginatedDatabases.map(db => this.renderDatabaseCard(db)).join('');
-        
-        // 데이터베이스 카드 클릭 이벤트 위임
-        container.addEventListener('click', (e) => {
-            const card = e.target.closest('.database-card');
-            if (card) {
-                const dbId = card.dataset.dbId;
-                const dbTitle = card.querySelector('.database-title').textContent;
-                app.selectDatabase(dbId, dbTitle);
-            }
+        container.innerHTML = databases.map(db => this.renderDatabaseCard(db)).join('');
+    },
+
+    highlightActiveDatabase(databaseId) {
+        document.querySelectorAll('.db-list-item').forEach(el => {
+            el.classList.toggle('is-active', el.dataset.dbId === databaseId);
         });
     },
 
-    updateDatabasesPagination() {
-        const totalPages = Math.ceil(AppState.filteredDatabases.length / AppState.databasePageSize);
-        const paginationEl = document.getElementById('databasesPagination');
-        const pageInfoEl = document.getElementById('pageInfo');
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
-        if (totalPages <= 1) {
-            DOMUtils.hide(paginationEl);
-        } else {
-            DOMUtils.show(paginationEl);
-            pageInfoEl.textContent = `${AppState.databaseCurrentPage} / ${totalPages}`;
-            prevBtn.disabled = AppState.databaseCurrentPage === 1;
-            nextBtn.disabled = AppState.databaseCurrentPage === totalPages;
-        }
-    },
-
     updateDatabasesCount() {
-        document.getElementById('databasesCount').textContent = `총 ${AppState.filteredDatabases.length}개`;
+        document.getElementById('databasesCount').textContent = `${AppState.filteredDatabases.length}개`;
     },
 
     updateDatabasesDisplay() {
         this.renderDatabases(AppState.filteredDatabases);
-        this.updateDatabasesPagination();
         this.updateDatabasesCount();
-    },
-
-    switchView(viewName) {
-        document.querySelectorAll('.view-section').forEach(v => DOMUtils.hide(v));
-        const databasesExpandIcon = document.getElementById('databasesExpandIcon');
-        const databasesTabs = document.getElementById('databasesTabs');
-        const databasesNavBtn = document.getElementById('databasesNavBtn');
-        if (viewName === 'databases') {
-            DOMUtils.show(document.getElementById('databasesView'));
-            DOMUtils.setActive(databasesNavBtn);
-            DOMUtils.hide(databasesExpandIcon);
-            DOMUtils.hide(databasesTabs);
-        } else {
-            DOMUtils.removeActive(databasesNavBtn);
-        }
-    },
-
-    switchTab(tabName) {
-        document.querySelectorAll('.nav-sub-item').forEach(btn => {
-            if (btn.getAttribute('data-tab') === tabName) {
-                DOMUtils.setActive(btn);
-            } else {
-                DOMUtils.removeActive(btn);
-            }
-        });
-        document.querySelectorAll('.tab-content').forEach(tab => DOMUtils.hide(tab));
-        if (tabName === 'analysis') {
-            DOMUtils.show(document.getElementById('analysisTab'));
-        }
     },
 
     showDatabase(databaseTitle) {
         DOMUtils.hide(document.getElementById('databasesView'));
         DOMUtils.show(document.getElementById('databaseDetail'));
         document.getElementById('databaseTitle').textContent = databaseTitle;
-        DOMUtils.show(document.getElementById('databasesExpandIcon'));
-        DOMUtils.show(document.getElementById('databasesTabs'));
     },
 
     copyToClipboard(text, button) {
@@ -1197,6 +1117,7 @@ const DatabaseManager = {
     async selectDatabase(databaseId, databaseTitle) {
         AppState.setCurrentDatabase(databaseId);
         UIRenderer.showDatabase(databaseTitle);
+        UIRenderer.highlightActiveDatabase(databaseId);
         SkeletonRenderer.renderAnalysis();
         try {
             const dbData = await ApiService.fetchDatabase(databaseId);
@@ -1211,7 +1132,6 @@ const DatabaseManager = {
 
     switchToAnalysisTab() {
         AppState.setCurrentTab('analysis');
-        UIRenderer.switchTab('analysis');
         this.loadAnalysis();
     },
 
@@ -1331,20 +1251,6 @@ const EventHandler = {
         UIRenderer.updateDatabasesDisplay();
     },
 
-    nextDatabasePage() {
-        AppState.nextDatabasePage();
-        UIRenderer.updateDatabasesDisplay();
-    },
-
-    previousDatabasePage() {
-        AppState.previousDatabasePage();
-        UIRenderer.updateDatabasesDisplay();
-    },
-
-    switchView(viewName) {
-        UIRenderer.switchView(viewName);
-    },
-
     refreshCurrentTab() {
         if (AppState.currentTab === 'analysis') {
             DatabaseManager.refreshAnalysis();
@@ -1427,10 +1333,6 @@ const app = {
     loadDatabases() { DatabaseManager.loadDatabases(); },
     selectDatabase(databaseId, databaseTitle) { DatabaseManager.selectDatabase(databaseId, databaseTitle); },
     onDatabaseSearch() { EventHandler.onDatabaseSearch(); },
-    nextDatabasePage() { EventHandler.nextDatabasePage(); },
-    previousDatabasePage() { EventHandler.previousDatabasePage(); },
-    switchView(viewName) { EventHandler.switchView(viewName); },
-    switchTab(tabName) { AppState.setCurrentTab(tabName); UIRenderer.switchTab(tabName); if (tabName === 'analysis') DatabaseManager.loadAnalysis(); },
     refreshCurrentTab() { EventHandler.refreshCurrentTab(); },
     copyToClipboard(text, button) { EventHandler.copyToClipboard(text, button); },
     copyPropertyList(properties, button) { EventHandler.copyPropertyList(properties, button); },

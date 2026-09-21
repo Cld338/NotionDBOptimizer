@@ -31,7 +31,7 @@
     color: white;
     border-color: var(--color-primary);
     transform: scale(1.1);
-    box-shadow: 0 4px 12px rgba(200, 118, 95, 0.3);
+    box-shadow: 0 4px 12px rgba(111, 123, 247, 0.35);
 }
 
 .copy-btn.copied {
@@ -89,7 +89,7 @@
 }
 
 .action-btn:hover {
-    background: rgba(200, 118, 95, 0.1);
+    background: rgba(111, 123, 247, 0.14);
     color: var(--color-primary);
     transform: scale(1.15);
 }
@@ -102,8 +102,9 @@
     content: attr(title);
     position: absolute;
     bottom: -28px;
-    background: rgba(77, 46, 39, 0.9);
-    color: white;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-dark);
     padding: 4px 8px;
     border-radius: 4px;
     font-size: 0.75rem;

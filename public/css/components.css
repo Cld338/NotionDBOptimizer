@@ -1,5 +1,5 @@
-/* ============ 카드 디자인 (Design.md 기준 반영) ============ */
-.card, .database-card {
+/* ============ 카드 디자인 ============ */
+.card {
     background-color: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 16px;
@@ -8,38 +8,9 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.card:hover, .database-card:hover {
+.card:hover {
     box-shadow: var(--shadow-lg);
 }
-
-.databases-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: var(--spacing-lg);
-}
-
-.database-card {
-    cursor: pointer;
-}
-
-.database-icon {
-    font-size: 2.5rem;
-    margin-bottom: var(--spacing-md);
-}
-
-.database-title {
-    font-family: var(--font-heading);
-    font-size: 1.2rem;
-    color: var(--color-accent);
-    margin-bottom: var(--spacing-xs);
-}
-
-.database-meta {
-    color: var(--color-neutral);
-    font-size: 0.9rem;
-}
-
-
 
 /* ============ 로딩 및 메시지 ============ */
 .loading-spinner {
@@ -56,33 +27,15 @@
     to { transform: rotate(360deg); }
 }
 
+.loading-card {
+    padding: var(--spacing-lg);
+    text-align: center;
+}
+
 .loading-card p {
     color: var(--color-text-light);
-    font-size: 1rem;
-    margin-top: var(--spacing-md);
-}
-
-.detail-title-section {
-    margin-top: var(--spacing-md);
-}
-
-.detail-title {
-    color: var(--color-accent);
-    font-size: 2.2rem;
-}
-
-.detail-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-lg);
-    gap: var(--spacing-lg);
-}
-
-.detail-actions {
-    display: flex;
-    gap: var(--spacing-md);
-    align-items: center;
+    font-size: 0.85rem;
+    margin-top: var(--spacing-sm);
 }
 
 /* 탭 콘텐츠 */
@@ -90,33 +43,15 @@
     animation: fadeIn var(--transition-normal);
 }
 
-/* is-hidden이 없을 때만 표시 */
-.tab-content:not(.is-hidden) {
-    display: block;
-}
-
-/* ============ 카드 ============ */
-.card {
-    background: var(--color-surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    border: 1px solid rgba(200, 118, 95, 0.08);
-    transition: all var(--transition-normal);
-}
-
-.card:hover {
-    box-shadow: var(--shadow-lg);
-    border-color: rgba(200, 118, 95, 0.15);
-}
-
+/* ============ 카드 헤더/본문 ============ */
 .card-header {
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--color-divider);
-    background: linear-gradient(135deg, var(--color-secondary) 0%, transparent 100%);
+    background: var(--color-secondary);
 }
 
 .card-header h3 {
-    color: var(--color-accent);
+    color: var(--color-text-dark);
     margin: 0;
     font-weight: 600;
 }
@@ -138,7 +73,7 @@ table {
 }
 
 thead {
-    background: linear-gradient(135deg, var(--color-secondary), #F0E8DE);
+    background: var(--color-secondary);
     border-bottom: 2px solid var(--color-primary);
 }
 
@@ -147,7 +82,7 @@ th {
     text-align: left;
     font-weight: 700;
     font-family: var(--font-code);
-    color: var(--color-accent);
+    color: var(--color-text-dark);
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -166,53 +101,6 @@ tr:hover {
 
 tr:last-child td {
     border-bottom: none;
-}
-
-/* ============ 새로고침 버튼 - Notion 스타일 ============ */
-.refresh-button-morphing {
-    width: 40px;
-    height: 40px;
-    background: #F5E5D8;
-    border: 1px solid #F0D4C4;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #6B5A45;
-    font-size: 20px;
-    box-shadow: none;
-    position: relative;
-    overflow: visible;
-    transition: all var(--transition-normal);
-}
-
-.refresh-button-morphing:hover {
-    background: #F0D4C4;
-    border-color: #D8CEC0;
-    box-shadow: var(--shadow-xs);
-}
-
-.refresh-button-morphing:active {
-    background: #E0D5CB;
-}
-
-.refresh-button-morphing::before {
-    content: none;
-}
-
-.refresh-button-morphing.active .material-icons-outlined,
-.refresh-button-morphing.is-active .material-icons-outlined {
-    animation: notionRotate 1.2s linear infinite;
-}
-
-@keyframes notionRotate {
-    from { 
-        transform: rotate(0deg); 
-    }
-    to { 
-        transform: rotate(360deg); 
-    }
 }
 
 /* ============ Material Icons 스타일 ============ */

@@ -41,7 +41,7 @@
 }
 
 .message.success::before {
-    content: '??';
+    content: '✓';
     color: var(--color-success);
     font-weight: bold;
 }
@@ -51,7 +51,7 @@
 }
 
 .message.error::before {
-    content: '??';
+    content: '✗';
     color: var(--color-error);
     font-weight: bold;
 }
@@ -222,7 +222,7 @@
     justify-content: space-between;
     padding: var(--spacing-sm);
     cursor: pointer;
-    background: linear-gradient(135deg, rgba(200, 118, 95, 0.03) 0%, transparent 100%);
+    background: linear-gradient(135deg, rgba(111, 123, 247, 0.05) 0%, transparent 100%);
     transition: var(--transition-normal);
     border-bottom: 1px solid var(--color-divider);
 }
@@ -232,7 +232,7 @@
 }
 
 .opp-group-header:hover {
-    background: linear-gradient(135deg, rgba(200, 118, 95, 0.08) 0%, rgba(200, 118, 95, 0.03) 100%);
+    background: linear-gradient(135deg, rgba(111, 123, 247, 0.1) 0%, rgba(111, 123, 247, 0.04) 100%);
 }
 
 .opp-group-left {
@@ -380,7 +380,7 @@
 }
 
 .opp-group-actions li:before {
-    content: '??';
+    content: '›';
     position: absolute;
     left: 0;
     color: var(--color-primary);
@@ -423,8 +423,8 @@
 
 /* ============ ?�공 체크리스??============ */
 .success-checklist {
-    background: linear-gradient(135deg, rgba(107, 142, 35, 0.08), rgba(107, 142, 35, 0.03));
-    border: 1px solid rgba(107, 142, 35, 0.2);
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.1), rgba(52, 211, 153, 0.03));
+    border: 1px solid rgba(52, 211, 153, 0.25);
     border-radius: var(--radius-md);
     padding: var(--spacing-lg);
     margin-top: var(--spacing-md);
@@ -459,7 +459,7 @@
 }
 
 .checklist-item::before {
-    content: '??';
+    content: '✓';
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -530,12 +530,12 @@
 
 /* ============ ?�벽???�태 (Zero-Error State) ============ */
 .zero-error-state {
-    background: linear-gradient(135deg, rgba(107, 142, 35, 0.05), rgba(107, 142, 35, 0.02));
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.08), rgba(52, 211, 153, 0.02));
     border-radius: var(--radius-lg);
     padding: var(--spacing-xl);
     text-align: center;
     border: 2px solid var(--color-success);
-    box-shadow: 0 0 20px rgba(107, 142, 35, 0.1);
+    box-shadow: 0 0 20px rgba(52, 211, 153, 0.12);
     margin-bottom: var(--spacing-xl);
     animation: slideDown var(--transition-normal) ease;
 }
@@ -621,7 +621,7 @@
 .data-field-name {
     font-family: var(--font-code);
     font-size: 0.9rem;
-    background: rgba(52, 152, 219, 0.1);
+    background: rgba(111, 123, 247, 0.14);
     padding: 2px 6px;
     border-radius: 3px;
     color: var(--color-text-dark);
@@ -632,7 +632,7 @@
 .formula-code {
     font-family: var(--font-code);
     font-size: 0.9rem;
-    background: rgba(139, 123, 111, 0.08);
+    background: rgba(148, 163, 184, 0.15);
     padding: 4px 8px;
     border-radius: 3px;
     color: var(--color-text-dark);

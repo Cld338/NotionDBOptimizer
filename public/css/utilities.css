@@ -53,13 +53,13 @@
 }
 
 ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, var(--color-primary), #D4A574);
+    background: var(--color-primary);
     border-radius: 5px;
     border: 2px solid var(--color-secondary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, var(--color-primary-deep), #D4A574);
+    background: var(--color-primary-deep);
 }
 
 /* ============ 표시/숨김 상태 ============ */
