@@ -226,15 +226,6 @@ const Formatter = {
         return div.innerHTML;
     },
 
-    getQualityLevel(score) {
-        if (score >= 90) return '탁월함';
-        if (score >= 80) return '우수';
-        if (score >= 70) return '좋음';
-        if (score >= 60) return '보통';
-        if (score >= 50) return '주의필요';
-        return '개선필요';
-    },
-
     getComplexityLabel(level) {
         if (level === 'high') return '높음';
         if (level === 'medium') return '중간';
@@ -703,19 +694,19 @@ const AnalysisRenderer = {
     },
 
     renderPerformanceSuccessChecklist(performanceAnalysis) {
-        const limits = performanceAnalysis.limits || {};
-        const metrics = limits.metrics || {};
+        const hardLimits = performanceAnalysis.hardLimits || {};
+        const pageSize = hardLimits.pageSize || {};
         let checklist = `<div class="success-checklist">
-            <div class="checklist-title">성능 분석 - 모든 항목 정상</div>
+            <div class="checklist-title">공식 리밋 - 모든 항목 정상 범위</div>
             <div class="checklist-items">
-                <div class="checklist-item"><span class="checklist-label">필드 개수</span><span class="checklist-value">권장 한계 이하 (최대 500개) <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ 안정성 유지</span></span></div>
-                <div class="checklist-item"><span class="checklist-label">레코드 개수</span><span class="checklist-value">성능 최적 범위 내 <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ 빠른 로딩</span></span></div>
-                <div class="checklist-item"><span class="checklist-label">관계 필드</span><span class="checklist-value">복잡도 정상 범위 <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ 쿼리 효율</span></span></div>
-                <div class="checklist-item"><span class="checklist-label">롤업/포뮬러</span><span class="checklist-value">성능 영향 미미 <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ 계산 속도</span></span></div>
+                <div class="checklist-item"><span class="checklist-label">속성 개수</span><span class="checklist-value">${hardLimits.properties?.current ?? 0} / ${hardLimits.properties?.limit ?? 500} <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ ${hardLimits.properties?.usagePercent ?? 0}%</span></span></div>
+                <div class="checklist-item"><span class="checklist-label">행(레코드) 개수</span><span class="checklist-value">${hardLimits.rows?.current ?? 0} / ${hardLimits.rows?.limit ?? 250000} <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ ${hardLimits.rows?.usagePercent ?? 0}%</span></span></div>
+                <div class="checklist-item"><span class="checklist-label">관계 참조 수(최대)</span><span class="checklist-value">${hardLimits.relationRefs?.current ?? 0} / ${hardLimits.relationRefs?.limit ?? 10000} <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ ${hardLimits.relationRefs?.usagePercent ?? 0}%</span></span></div>
+                <div class="checklist-item"><span class="checklist-label">DB 구조 크기</span><span class="checklist-value">${((hardLimits.dbStructure?.current || 0) / 1024).toFixed(2)} KB <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ ${hardLimits.dbStructure?.usagePercent ?? 0}%</span></span></div>
         `;
-        if (metrics.avgPageSize !== undefined) {
-            checklist += `<div class="checklist-item"><span class="checklist-label">평균 페이지 크기</span><span class="checklist-value">${(metrics.avgPageSize / 1024).toFixed(2)} KB <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ 최적</span></span></div>
-            <div class="checklist-item"><span class="checklist-label">최대 페이지 크기</span><span class="checklist-value">${(metrics.maxPageSize / 1024).toFixed(2)} KB <span style="color: #10b981; font-weight: 600; font-size: 0.8rem;">✓ 안전</span></span></div>`;
+        if (pageSize.avg !== undefined) {
+            checklist += `<div class="checklist-item"><span class="checklist-label">평균 페이지 크기</span><span class="checklist-value">${(pageSize.avg / 1024).toFixed(2)} KB <span style="color: var(--color-success); font-weight: 600; font-size: 0.8rem;">✓ 최적</span></span></div>
+            <div class="checklist-item"><span class="checklist-label">최대 페이지 크기</span><span class="checklist-value">${(pageSize.max / 1024).toFixed(2)} KB <span style="color: #10b981; font-weight: 600; font-size: 0.8rem;">✓ ${pageSize.usagePercent ?? 0}%</span></span></div>`;
         }
         checklist += `</div></div>`;
         return checklist;
@@ -732,7 +723,7 @@ const AnalysisRenderer = {
             <div class="deep-chains-metrics">
                 <div class="metrics-grid">
                     <div class="metric-card"><div class="metric-label">📊 최대 깊이</div><div class="metric-value">${safeMetrics.maxDepth || 0}</div><div class="metric-desc">가장 복잡한 경로</div></div>
-                    <div class="metric-card"><div class="metric-label">🔗 발견된 경로</div><div class="metric-value">${deepChains.length}</div><div class="metric-desc">3단계 이상</div></div>
+                    <div class="metric-card"><div class="metric-label">🔗 발견된 경로</div><div class="metric-value">${deepChains.length}</div><div class="metric-desc">참조 체인</div></div>
                     <div class="metric-card"><div class="metric-label">💾 영향 범위</div><div class="metric-value">${safeMetrics.totalAffectedRecords || 0}</div><div class="metric-desc">레코드 수</div></div>
                 </div>
             </div>
@@ -741,7 +732,7 @@ const AnalysisRenderer = {
                     <div class="deep-chain-header" onclick="app.toggleDeepChainItem('deep-chain-${idx}')">
                         <div class="deep-chain-header-left">
                             <span class="deep-chain-toggle">▶</span>
-                            <span class="deep-chain-depth-badge ${chain.depth >= 5 ? 'depth-critical' : chain.depth >= 4 ? 'depth-warning' : 'depth-normal'}">${chain.depth}단계</span>
+                            <span class="deep-chain-depth-badge ${chain.isDepthOutlier ? 'depth-critical' : 'depth-normal'}">${chain.depth}단계${chain.isDepthOutlier ? ' (이례적으로 깊음)' : ''}</span>
                             <span class="deep-chain-path-text" title="${chain.path ? chain.path.map(node => `${node.db}.${node.field}`).join(' → ') : ''}">${chain.sourceDb}.${chain.sourceField}</span>
                         </div>
                         <div class="deep-chain-header-right">
@@ -925,19 +916,22 @@ const AnalysisRenderer = {
     },
 
     renderPerformanceAnalysis(performanceAnalysis) {
-        const issues = performanceAnalysis.issues || {};
-        const limits = performanceAnalysis.limits || {};
-        const performanceScore = issues.score || 0;
+        const hardLimits = performanceAnalysis.hardLimits || {};
+        const warnings = performanceAnalysis.warnings || [];
+        const informational = performanceAnalysis.informational || {};
+        const limitLabels = {
+            properties: '속성 개수', rows: '행(레코드) 개수', pageSize: '페이지 크기',
+            dbStructure: 'DB 구조 크기', relationRefs: '관계 참조 수', schemaSize: '스키마 크기'
+        };
         let html = `<div class="performance-section">`;
-        if (issues.factors && issues.factors.length > 0) {
-            html += `<div class="performance-factors-section"><h4>⚠️ 성능 영향 요인</h4><div class="factors-list">`;
-            issues.factors.forEach(factor => {
-                const factorColor = factor.severity === 'critical' ? Constants.priorityColors.high : Constants.priorityColors.medium;
+        if (warnings.length > 0) {
+            html += `<div class="performance-factors-section"><h4>⚠️ 공식 리밋 근접 항목</h4><div class="factors-list">`;
+            warnings.forEach(w => {
+                const factorColor = w.level === 'critical' ? Constants.priorityColors.high : Constants.priorityColors.medium;
                 html += `<div class="factor-item" style="border-left: 4px solid ${factorColor};">
-                    <div class="factor-header"><span class="factor-title">${Formatter.escapeHtml(factor.title)}</span></div>
+                    <div class="factor-header"><span class="factor-title">${Formatter.escapeHtml(limitLabels[w.type] || w.type)}</span></div>
                     <div class="factor-info">
-                        <div class="info-row"><span class="info-label">현재:</span><span class="info-value">${factor.current}${factor.unit ? ' ' + factor.unit : ''}</span></div>
-                        <div class="info-row"><span class="info-label">해결책:</span><span class="info-value">${Formatter.escapeHtml(factor.recommendation)}</span></div>
+                        <div class="info-row"><span class="info-label">사용률:</span><span class="info-value">${w.usagePercent}% (${w.current} / ${w.limit})</span></div>
                     </div>
                 </div>`;
             });
@@ -945,55 +939,68 @@ const AnalysisRenderer = {
         } else {
             html += this.renderPerformanceSuccessChecklist(performanceAnalysis);
         }
-        if (limits.metrics) {
-            html += `<div class="size-constraints-section"><h4>💾 데이터 크기</h4><div class="constraint-metrics">
-                <div class="metric-item"><span class="metric-label">평균 페이지</span><span class="metric-value">${(limits.metrics.avgPageSize / 1024).toFixed(2)} KB</span></div>
-                <div class="metric-item"><span class="metric-label">최대 페이지</span><span class="metric-value">${(limits.metrics.maxPageSize / 1024).toFixed(2)} KB</span></div>
-            </div></div>`;
-        }
+        html += `<div class="size-constraints-section"><h4>📈 참고 지표 (Notion 공식 임계값 없음)</h4><div class="constraint-metrics">
+            <div class="metric-item"><span class="metric-label">레코드 수</span><span class="metric-value">${informational.recordCount ?? 0}</span></div>
+            <div class="metric-item"><span class="metric-label">속성 수</span><span class="metric-value">${informational.propertyCount ?? 0}</span></div>
+            <div class="metric-item"><span class="metric-label">수식/롤업 수</span><span class="metric-value">${informational.formulaRollupCount ?? 0}</span></div>
+            <div class="metric-item"><span class="metric-label">관계 필드 수</span><span class="metric-value">${informational.relationCount ?? 0}</span></div>
+        </div></div>`;
         html += `</div>`;
         return html;
     },
 
     renderAnalysis(analysis) {
-        const qualityScore = analysis.qualityScore || 0;
-        const scoreColor = qualityScore >= 80 ? Constants.colors.success : qualityScore >= 60 ? Constants.colors.warning : Constants.colors.error;
+        const dataQuality = analysis.dataQuality || {};
+        const completeness = dataQuality.completeness || { overall: 0 };
+        const uniqueness = dataQuality.uniqueness || { byColumn: {} };
+        const validity = dataQuality.validity || { overall: 0 };
+        const timeliness = dataQuality.timeliness || {};
+        const accuracy = dataQuality.accuracy || {};
+        const consistency = dataQuality.consistency || {};
         const performanceAnalysis = analysis.performanceAnalysis || {};
-        const performanceIssues = performanceAnalysis.issues || {};
-        const performanceScore = performanceIssues.score || 0;
+
+        const uniquenessValues = Object.values(uniqueness.byColumn || {});
+        const uniquenessAvg = uniquenessValues.length > 0
+            ? Math.round(uniquenessValues.reduce((sum, c) => sum + (100 - c.duplicateRatio), 0) / uniquenessValues.length)
+            : null;
+
+        const colorFor = v => v >= 80 ? Constants.colors.success : v >= 60 ? Constants.colors.warning : Constants.colors.error;
+        const completenessColor = colorFor(completeness.overall || 0);
+        const uniquenessColor = uniquenessAvg !== null ? colorFor(uniquenessAvg) : '#999';
+        const validityColor = colorFor(validity.overall || 0);
 
         let html = `<div class="analysis-container">
             <div class="analysis-pinned-section">
                 <div class="stats-section">
                     <div class="quality-score-hero">
                         <div class="hero-left">
-                            <div class="quality-badge" style="background: linear-gradient(135deg, ${scoreColor} 0%, ${scoreColor}dd 100%)">
-                                <div class="badge-value">${qualityScore}</div>
-                                <div class="badge-unit">/100</div>
-                            </div>
                             <div class="quality-info">
-                                <div class="quality-level" style="color: ${scoreColor}">${Formatter.getQualityLevel(qualityScore)}</div>
-                                <div class="quality-desc">데이터 품질 평가</div>
+                                <div class="quality-desc">데이터 품질 평가 (DAMA-DMBOK 차원 기준)</div>
                             </div>
                         </div>
-                        <div class="hero-right">
+                        <div class="hero-right" style="flex-wrap: wrap;">
                             <div class="mini-stat"><div class="mini-icon">📝</div><div class="mini-info"><div class="mini-label">총 항목</div><div class="mini-value">${analysis.totalRecords || 0}</div></div></div>
                             <div class="mini-stat"><div class="mini-icon">🏢</div><div class="mini-info"><div class="mini-label">총 컬럼</div><div class="mini-value">${analysis.totalColumns || 0}</div></div></div>
-                            <div class="mini-stat"><div class="mini-icon">✓</div><div class="mini-info"><div class="mini-label">완성도</div><div class="mini-value">${analysis.overallCompleteness || 0}%</div></div></div>
+                            <div class="mini-stat" title="외부 정답 데이터가 없어 계산 불가: ${Formatter.escapeHtml(accuracy.reason || '')}"><div class="mini-icon">🚫</div><div class="mini-info"><div class="mini-label">정확성</div><div class="mini-value">N/A</div></div></div>
+                            <div class="mini-stat" title="교차 필드 규칙이 없어 계산 불가: ${Formatter.escapeHtml(consistency.reason || '')}"><div class="mini-icon">🚫</div><div class="mini-info"><div class="mini-label">일관성</div><div class="mini-value">N/A</div></div></div>
                         </div>
                     </div>
                     <div class="quality-progress-compare">
                         <div class="progress-item">
-                            <div class="progress-header"><span class="progress-label">데이터 완성도</span><span class="progress-value">${analysis.overallCompleteness || 0}%</span></div>
-                            <div class="progress-bar"><div class="progress-fill" style="width: ${analysis.overallCompleteness || 0}%; background: linear-gradient(90deg, var(--color-warning), #fbbf24)"></div></div>
+                            <div class="progress-header"><span class="progress-label">완전성 (Completeness)</span><span class="progress-value">${completeness.overall || 0}%</span></div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${completeness.overall || 0}%; background: linear-gradient(90deg, ${completenessColor}, ${completenessColor}dd)"></div></div>
                         </div>
                         <div class="progress-item">
-                            <div class="progress-header"><span class="progress-label">품질 점수</span><span class="progress-value">${qualityScore}%</span></div>
-                            <div class="progress-bar"><div class="progress-fill" style="width: ${qualityScore}%; background: linear-gradient(90deg, ${scoreColor}, ${scoreColor}dd)"></div></div>
+                            <div class="progress-header"><span class="progress-label">고유성 (Uniqueness)</span><span class="progress-value">${uniquenessAvg !== null ? uniquenessAvg + '%' : 'N/A'}</span></div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${uniquenessAvg ?? 0}%; background: linear-gradient(90deg, ${uniquenessColor}, ${uniquenessColor}dd)"></div></div>
                         </div>
                         <div class="progress-item">
-                            <div class="progress-header"><span class="progress-label">성능 점수</span><span class="progress-value">${performanceScore}%</span></div>
-                            <div class="progress-bar"><div class="progress-fill" style="width: ${performanceScore}%; background: linear-gradient(90deg, ${performanceScore >= 80 ? Constants.colors.success : performanceScore >= 60 ? Constants.colors.warning : Constants.colors.error}, ${performanceScore >= 80 ? Constants.colors.success : performanceScore >= 60 ? Constants.colors.warning : Constants.colors.error}dd)"></div></div>
+                            <div class="progress-header"><span class="progress-label">유효성 (Validity)</span><span class="progress-value">${validity.overall || 0}%</span></div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: ${validity.overall || 0}%; background: linear-gradient(90deg, ${validityColor}, ${validityColor}dd)"></div></div>
+                        </div>
+                        <div class="progress-item">
+                            <div class="progress-header"><span class="progress-label">적시성 (Timeliness)</span><span class="progress-value">${timeliness.medianDaysSinceEdit !== null && timeliness.medianDaysSinceEdit !== undefined ? `중앙값 ${timeliness.medianDaysSinceEdit}일 전 수정` : 'N/A'}</span></div>
+                            <div class="progress-bar"><div class="progress-fill" style="width: 100%; background: #999;"></div></div>
                         </div>
                     </div>
                 </div>
@@ -1037,19 +1044,42 @@ const AnalysisRenderer = {
             </div>`;
         }
 
-        if (performanceAnalysis.issues) {
+        if (performanceAnalysis.hardLimits) {
             html += `<div class="collapsible-section" data-section="performance">
                 <div class="section-header" onclick="app.toggleSection(event)">
                     <div class="section-title-wrapper">
                         <span class="section-icon">⚡</span>
                         <div class="section-title-group">
                             <h3 class="section-title">성능 분석</h3>
-                            <p class="section-subtitle">노션 공식 가이드 기반</p>
+                            <p class="section-subtitle">Notion 공식 리밋 기반</p>
                         </div>
                     </div>
                     <div class="section-header-actions"><div class="collapse-toggle">▼</div></div>
                 </div>
                 <div class="section-content">${this.renderPerformanceAnalysis(performanceAnalysis)}</div>
+            </div>`;
+        }
+
+        if (performanceAnalysis.cyclicChains && performanceAnalysis.cyclicChains.length > 0) {
+            html += `<div class="collapsible-section" data-section="cyclic-chains">
+                <div class="section-header" onclick="app.toggleSection(event)">
+                    <div class="section-title-wrapper">
+                        <span class="section-icon">🔁</span>
+                        <div class="section-title-group">
+                            <h3 class="section-title">순환 참조 발견</h3>
+                            <p class="section-subtitle">${performanceAnalysis.cyclicChains.length}개 - 값이 안정적으로 계산되지 않을 수 있습니다</p>
+                        </div>
+                    </div>
+                    <div class="section-header-actions"><div class="collapse-toggle">▼</div></div>
+                </div>
+                <div class="section-content">
+                    <div class="factors-list">
+                        ${performanceAnalysis.cyclicChains.map(chain => `<div class="factor-item" style="border-left: 4px solid ${Constants.priorityColors.high};">
+                            <div class="factor-header"><span class="factor-title">${Formatter.escapeHtml(chain.sourceDb)}.${Formatter.escapeHtml(chain.sourceField)}</span></div>
+                            <div class="factor-info"><div class="info-row"><span class="info-label">순환 경로:</span><span class="info-value">${(chain.cyclePaths || []).map(p => p.join(' → ')).join(', ')}</span></div></div>
+                        </div>`).join('')}
+                    </div>
+                </div>
             </div>`;
         }
 
@@ -1060,7 +1090,7 @@ const AnalysisRenderer = {
                         <span class="section-icon">🔗</span>
                         <div class="section-title-group">
                             <h3 class="section-title">깊은 참조 경로 분석</h3>
-                            <p class="section-subtitle">${performanceAnalysis.deepReferenceChains.length}개 발견 - 3단계 이상의 참조 체인</p>
+                            <p class="section-subtitle">${performanceAnalysis.deepReferenceChains.length}개 발견</p>
                         </div>
                     </div>
                     <div class="section-header-actions"><div class="collapse-toggle">▼</div></div>

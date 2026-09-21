@@ -10,8 +10,7 @@ const {
 } = require('../utils/propertyFormatter');
 
 const {
-    analyzeDatabase,
-    calculateQualityScore
+    analyzeDatabase
 } = require('../services/analyzerService');
 
 describe('Data Validation Tests - 데이터 검증', () => {
@@ -211,33 +210,21 @@ describe('Data Validation Tests - 데이터 검증', () => {
     // 숫자 범위 검증
     // ============================================
     describe('숫자 범위 검증', () => {
-        test('품질 점수: 0-100 범위 검증', () => {
-            const scores = [0, 25, 50, 75, 100];
-            scores.forEach(score => {
-                expect(calculateQualityScore(score, 20, 100)).toBeGreaterThanOrEqual(0);
-                expect(calculateQualityScore(score, 20, 100)).toBeLessThanOrEqual(100);
-            });
-        });
-
-        test('완성도 점수: 0-100 검증', () => {
+        test('완전성/유효성 차원 점수: 0-100 범위 검증', () => {
             const records = [
                 { id: 1, properties: { name: 'A', status: 'Active' } },
                 { id: 2, properties: { name: 'B', status: null } }
             ];
             const properties = {
                 name: { type: 'title' },
-                status: { type: 'select' }
+                status: { type: 'select', select: { options: [{ name: 'Active' }] } }
             };
 
             const result = analyzeDatabase(records, properties, ['name', 'status']);
-            expect(result.overallCompleteness).toBeGreaterThanOrEqual(0);
-            expect(result.overallCompleteness).toBeLessThanOrEqual(100);
-        });
-
-        test('음수 입력 처리', () => {
-            const score = calculateQualityScore(-10, 20, 100);
-            // 음수는 0으로 처리되어야 함
-            expect(score).toBeGreaterThanOrEqual(0);
+            expect(result.dataQuality.completeness.overall).toBeGreaterThanOrEqual(0);
+            expect(result.dataQuality.completeness.overall).toBeLessThanOrEqual(100);
+            expect(result.dataQuality.validity.overall).toBeGreaterThanOrEqual(0);
+            expect(result.dataQuality.validity.overall).toBeLessThanOrEqual(100);
         });
 
         test('선택 옵션 수: 유효한 범위', () => {
