@@ -62,19 +62,29 @@ function generateAlternativeIds(id) {
 }
 
 /**
+ * 문자열 리터럴을 동일한 길이의 공백으로 치환한다.
+ * 직접 필드명 매칭이 리터럴 내부 텍스트(예: if(x == "Status")의 "Status")를
+ * 실제 필드 참조로 오탐하지 않도록, 매칭 전에 리터럴을 제거하기 위한 전처리다.
+ * 공백으로 치환해 문자 오프셋을 보존하므로 디버깅 시 원본 위치 추적이 쉽다.
+ */
+function _stripStringLiterals(expression) {
+    return expression.replace(/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g, match => ' '.repeat(match.length));
+}
+
+/**
  * 포뮬러 표현식에서 필드 참조 추출
- * 우선순위: block_property → prop() → 직접 필드명
+ * block_property, prop(), 직접 필드명 세 가지 추출 전략을 모두 실행한 뒤 병합·중복 제거한다.
+ * (이전에는 앞 전략이 하나라도 매치되면 뒤 전략을 건너뛰어, block_property와 prop()이
+ * 한 수식에 혼용된 경우 참조가 누락되는 문제가 있었다.)
  */
 function extractFieldReferencesFromFormula(
-    expression, 
-    availableFieldNames, 
-    propertyIdMap = {}, 
-    globalPropertyIdMap = {}, 
+    expression,
+    availableFieldNames,
+    propertyIdMap = {},
+    globalPropertyIdMap = {},
     debug = false
 ) {
-    const references = [];
-    
-    if (!expression || typeof expression !== 'string') return references;
+    if (!expression || typeof expression !== 'string') return [];
 
     if (debug) {
         console.log(`${' '.repeat(10)}[extractFieldReferencesFromFormula]`);
@@ -82,7 +92,7 @@ function extractFieldReferencesFromFormula(
         console.log(`${' '.repeat(12)}availableFieldNames: [${availableFieldNames.join(', ')}]`);
     }
 
-    // 1. {{notion:block_property:...}} 패턴 분석
+    // 1. {{notion:block_property:...}} 패턴 분석 (원문 사용 — 리터럴과 무관한 고유 패턴)
     const blockPropertyReferences = _extractBlockPropertyReferences(
         expression,
         propertyIdMap,
@@ -90,32 +100,21 @@ function extractFieldReferencesFromFormula(
         availableFieldNames,
         debug
     );
-    
-    if (blockPropertyReferences.length > 0) {
-        if (debug) {
-            console.log(`${' '.repeat(12)}결과: [${blockPropertyReferences.join(', ')}] (block_property 우선)`);
-        }
-        return [...new Set(blockPropertyReferences)];
-    }
 
-    // 2. prop("필드명") 패턴 분석
+    // 2. prop("필드명") 패턴 분석 (원문 사용 — 따옴표 자체가 문법의 일부)
     const propReferences = _extractPropReferences(expression, availableFieldNames, debug);
-    
-    if (propReferences.length > 0) {
-        if (debug) {
-            console.log(`${' '.repeat(12)}결과: [${propReferences.join(', ')}] (prop() 우선)`);
-        }
-        return [...new Set(propReferences)];
-    }
 
-    // 3. 직접 필드명 참조 분석
-    const directReferences = _extractDirectFieldReferences(expression, availableFieldNames, debug);
-    
+    // 3. 직접 필드명 참조 분석 (문자열 리터럴을 제거한 정제 텍스트 사용)
+    const sanitizedExpression = _stripStringLiterals(expression);
+    const directReferences = _extractDirectFieldReferences(sanitizedExpression, availableFieldNames, debug);
+
+    const merged = [...new Set([...blockPropertyReferences, ...propReferences, ...directReferences])];
+
     if (debug) {
-        console.log(`${' '.repeat(12)}결과: [${directReferences.length > 0 ? directReferences.join(', ') : '없음'}]`);
+        console.log(`${' '.repeat(12)}결과(병합): [${merged.length > 0 ? merged.join(', ') : '없음'}]`);
     }
 
-    return [...new Set(directReferences)];
+    return merged;
 }
 
 /**
@@ -214,49 +213,41 @@ function _extractPropReferences(expression, availableFieldNames, debug) {
 
 /**
  * 직접 필드명 참조 추출
+ * ★ 개선: 수식 본문에서 식별자를 뽑아 필드 목록과 대조하던 기존 방식은
+ *   `[a-zA-Z0-9가-힣\s]`만 허용해 하이픈(-)/언더스코어(_)/숫자로 시작하는 필드명을
+ *   매칭하지 못했다. 대신 "알려진 필드명을 본문에서 직접 탐색"하는 방식으로 뒤집어
+ *   특수문자가 포함된 필드명도 지원한다. 긴 이름을 먼저 검사해 짧은 이름이
+ *   긴 이름의 일부로 잘못 매칭되는 것을 방지한다(예: "Total"과 "Total Price").
  */
-function _extractDirectFieldReferences(expression, availableFieldNames, debug) {
-    const directPattern = /\b([a-zA-Z가-힣][a-zA-Z0-9가-힣\s]*)\b/g;
-    const foundFieldNames = new Set();
+function _extractDirectFieldReferences(sanitizedExpression, availableFieldNames, debug) {
     const references = [];
-    
-    // Notion 예약어
-    const reserved = [
-        'if', 'then', 'else', 'and', 'or', 'not', 'true', 'false', 
-        'empty', 'add', 'subtract', 'multiply', 'divide', 'mod', 'pow', 
-        'abs', 'floor', 'ceil', 'round', 'sqrt', 'length', 'contains', 
-        'test', 'replace', 'slice', 'concat', 'join', 'split', 'reverse', 
-        'sort', 'unique', 'flatten', 'max', 'min', 'sum', 'avg', 'count', 
-        'countall', 'any', 'all', 'now', 'today', 'dateAdd', 'dateBetween', 
-        'dateSubtract', 'formatDate', 'parseDate'
-    ];
-    
+
     if (debug) {
-        console.log(`${' '.repeat(12)}Step 3: 직접 필드명 참조 분석...`);
+        console.log(`${' '.repeat(12)}Step 3: 직접 필드명 참조 분석 (문자열 리터럴 제외)...`);
     }
 
-    let match;
-    while ((match = directPattern.exec(expression)) !== null) {
-        const fieldName = match[1].trim();
-        
-        if (!reserved.includes(fieldName.toLowerCase())) {
-            foundFieldNames.add(fieldName);
-        }
-    }
+    const sortedFieldNames = [...availableFieldNames]
+        .filter(name => typeof name === 'string' && name.length > 0)
+        .sort((a, b) => b.length - a.length);
 
-    foundFieldNames.forEach(fieldName => {
-        if (availableFieldNames.includes(fieldName)) {
+    for (const fieldName of sortedFieldNames) {
+        const escaped = fieldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        // 필드명 앞뒤가 문자/숫자/한글이 아니어야 온전한 단어 경계로 간주한다.
+        const pattern = new RegExp(`(?<![\\w가-힣])${escaped}(?![\\w가-힣])`, 'u');
+
+        if (pattern.test(sanitizedExpression)) {
             references.push(fieldName);
             if (debug) {
                 console.log(`${' '.repeat(14)}✓ 추가: ${fieldName}`);
             }
         }
-    });
+    }
 
     return references;
 }
 
 module.exports = {
     extractFieldReferencesFromFormula,
-    generateAlternativeIds
+    generateAlternativeIds,
+    _stripStringLiterals
 };

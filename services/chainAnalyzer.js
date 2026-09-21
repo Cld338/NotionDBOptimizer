@@ -9,10 +9,10 @@ const { extractFieldReferencesFromFormula } = require('../utils/formulaParser');
  * 모든 데이터베이스의 참조 트리 분석
  */
 function buildReferenceChains(
-    dbPropertiesMap, 
-    propertyIdMapByDb, 
-    propertyNameMapByDb, 
-    globalPropertyIdMap, 
+    dbPropertiesMap,
+    propertyIdMapByDb,
+    propertyNameMapByDb,
+    globalPropertyIdMap,
     debug = false
 ) {
     const referenceTree = [];
@@ -26,7 +26,7 @@ function buildReferenceChains(
     // 각 DB의 각 필드에 대해 참조 트리 생성
     for (const [dbId, dbInfo] of dbPropertiesMap.entries()) {
         const properties = dbInfo.properties;
-        
+
         for (const prop of properties) {
             // Rollup 또는 Formula 필드만 시작점
             if (prop.type !== 'rollup' && prop.type !== 'formula') {
@@ -41,8 +41,7 @@ function buildReferenceChains(
                 console.log(`\n🌳 [buildReferenceChains] 시작: ${dbInfo.databaseTitle} > ${prop.name} (${prop.type})`);
             }
 
-            // 참조 트리 생성
-            const visited = new Set();
+            // 참조 트리 생성 (ancestorPath: 현재 재귀 경로상의 조상만 담는 배열 — 형제 분기와 공유하지 않음)
             const treeRoot = _createTreeNode(
                 dbId,
                 prop,
@@ -51,24 +50,28 @@ function buildReferenceChains(
                 propertyIdMapByDb,
                 propertyNameMapByDb,
                 globalPropertyIdMap,
-                visited,
+                [],
                 0,
                 10,
                 debug
             );
-            
+
             // 트리에 자식이 있으면 저장 (최소 1단계 이상의 참조가 있어야 함)
             if (treeRoot && (treeRoot.children.length > 0 || _hasAnyReferences(treeRoot))) {
+                const { hasCycle, cyclePaths } = _collectCycles(treeRoot);
+
                 referenceTree.push({
                     sourceDb: dbInfo.databaseTitle,
                     sourceField: prop.name,
                     sourceDbId: dbId,
                     sourceType: prop.type,
-                    tree: treeRoot
+                    tree: treeRoot,
+                    hasCycle,
+                    cyclePaths
                 });
 
                 if (debug) {
-                    console.log(`   ✓ 트리 저장: ${_countTreeNodes(treeRoot)}개 노드`);
+                    console.log(`   ✓ 트리 저장: ${_countTreeNodes(treeRoot)}개 노드${hasCycle ? ' (순환 참조 포함)' : ''}`);
                 }
             } else if (debug) {
                 console.log(`   ✗ 트리 미저장: 참조 없음`);
@@ -85,6 +88,11 @@ function buildReferenceChains(
 
 /**
  * 재귀적으로 참조 트리 노드 생성
+ * ★ ancestorPath: 현재 DFS 경로상의 조상 노드 키만 담는 배열이다.
+ *   각 재귀 호출은 자신만의 새 배열([...ancestorPath, visitKey])을 만들어 자식에게 전달하므로,
+ *   형제 분기끼리 방문 기록을 공유하지 않는다. 이렇게 해야 A→C, B→C처럼 서로 무관한 두 필드가
+ *   정당하게 같은 필드 C를 참조하는 "다이아몬드" 구조를 순환 참조로 오판하지 않는다.
+ *   진짜 순환(C→D→C)만 ancestorPath.includes(visitKey)로 정확히 잡힌다.
  */
 function _createTreeNode(
     dbId,
@@ -94,40 +102,57 @@ function _createTreeNode(
     propertyIdMapByDb = new Map(),
     propertyNameMapByDb = new Map(),
     globalPropertyIdMap = {},
-    visited = new Set(),
+    ancestorPath = [],
     depth = 0,
     maxDepth = 5,
     debug = false
 ) {
     const indent = '  '.repeat(depth);
-    
+
     if (debug) {
         console.log(`${indent}└─ [depth=${depth}] createTreeNode(${fieldName})`);
     }
-    
+
+    const dbInfo = dbPropertiesMap.get(dbId);
+    const actualType = property.type ? property.type.toLowerCase() : 'unknown';
+    const visitKey = `${dbId}|${fieldName}`;
+
+    // 순환 참조: 현재 경로(조상)에 이미 같은 노드가 있으면 진짜 순환이다
+    if (ancestorPath.includes(visitKey)) {
+        if (debug) {
+            console.log(`${indent}   ⚠️  순환 참조 감지: ${[...ancestorPath, visitKey].join(' → ')}`);
+        }
+        return {
+            db: dbInfo?.databaseTitle || 'Unknown',
+            dbId,
+            fieldName,
+            fieldType: property.type,
+            type: actualType,
+            cycle: true,
+            cyclePath: [...ancestorPath, visitKey],
+            children: []
+        };
+    }
+
     if (depth > maxDepth) {
         if (debug) {
             console.log(`${indent}   ⚠️  maxDepth 초과`);
         }
-        return null;
+        return {
+            db: dbInfo?.databaseTitle || 'Unknown',
+            dbId,
+            fieldName,
+            fieldType: property.type,
+            type: actualType,
+            truncated: true,
+            children: []
+        };
     }
 
-    const visitKey = `${dbId}|${fieldName}`;
-    if (visited.has(visitKey)) {
-        if (debug) {
-            console.log(`${indent}   ⚠️  순환 참조 감지`);
-        }
-        return null;
-    }
+    // 이 분기 전용 조상 경로 (형제 분기와 공유되지 않음)
+    const nextAncestorPath = [...ancestorPath, visitKey];
 
-    visited.add(visitKey);
-
-    // 현재 노드 정보 생성
-    const dbInfo = dbPropertiesMap.get(dbId);
-    
     // 필드의 실제 타입 결정 (항상 필드 타입 사용)
-    const actualType = property.type ? property.type.toLowerCase() : 'unknown';
-    
     const node = {
         db: dbInfo?.databaseTitle || 'Unknown',
         dbId: dbId,
@@ -148,7 +173,7 @@ function _createTreeNode(
         if (refDbInfo) {
             node.referencedPropertyDb = refDbInfo.databaseTitle;
             node.referencedPropertyDbId = property.referencedDatabaseId;
-            
+
             // 참조된 필드의 실제 타입 찾기
             if (property.referencedProperty) {
                 const refProp = refDbInfo.properties.find(p => p.name === property.referencedProperty);
@@ -169,7 +194,7 @@ function _createTreeNode(
             property,
             dbPropertiesMap,
             node,
-            visited,
+            nextAncestorPath,
             depth,
             maxDepth,
             propertyIdMapByDb,
@@ -186,7 +211,7 @@ function _createTreeNode(
             property,
             dbPropertiesMap,
             node,
-            visited,
+            nextAncestorPath,
             depth,
             maxDepth,
             propertyIdMapByDb,
@@ -207,7 +232,7 @@ function _traceRollupFieldTree(
     property,
     dbPropertiesMap,
     parentNode,
-    visited,
+    ancestorPath,
     depth,
     maxDepth,
     propertyIdMapByDb,
@@ -242,7 +267,7 @@ function _traceRollupFieldTree(
                     propertyIdMapByDb,
                     propertyNameMapByDb,
                     globalPropertyIdMap,
-                    visited,
+                    ancestorPath,
                     depth + 1,
                     maxDepth,
                     debug
@@ -264,14 +289,16 @@ function _traceRollupFieldTree(
 
 /**
  * Formula 필드 트리 추적
- * ★ 중요: 하나의 Formula가 여러 필드를 참조할 때 각각을 자식 노드로 추가
+ * ★ 중요: 하나의 Formula가 여러 필드를 참조할 때 각각을 자식 노드로 추가.
+ *   모든 자식이 동일한 ancestorPath(부모까지의 조상 경로)를 전달받되,
+ *   각자 자신만의 nextAncestorPath를 새로 만들어 내려가므로 형제간 간섭이 없다.
  */
 function _traceFormulaFieldTree(
     dbId,
     property,
     dbPropertiesMap,
     parentNode,
-    visited,
+    ancestorPath,
     depth,
     maxDepth,
     propertyIdMapByDb,
@@ -320,7 +347,7 @@ function _traceFormulaFieldTree(
                 propertyIdMapByDb,
                 propertyNameMapByDb,
                 globalPropertyIdMap,
-                visited,
+                ancestorPath,
                 depth + 1,
                 maxDepth,
                 debug
@@ -342,11 +369,11 @@ function _logPropertyMapsDebug(dbPropertiesMap, propertyIdMapByDb, globalPropert
     for (const [dbId, dbInfo] of dbPropertiesMap.entries()) {
         const propertyIdMap = propertyIdMapByDb.get(dbId) || {};
         const entries = Object.entries(propertyIdMap);
-        
+
         console.log(`\n🔑 [propertyIdMap 생성] ${dbInfo.databaseTitle}`);
         console.log(`   총 속성 수: ${dbInfo.properties?.length || 0}`);
         console.log(`   매핑 수: ${entries.length}개`);
-        
+
         if (entries.length > 0) {
             console.log(`   📋 매핑 예시 (처음 3개):`);
             entries.slice(0, 3).forEach(([key, fieldName]) => {
@@ -383,28 +410,47 @@ function _hasAnyReferences(node) {
 }
 
 /**
+ * 트리를 순회하며 순환 참조 노드를 전부 수집한다.
+ */
+function _collectCycles(node) {
+    const cyclePaths = [];
+
+    function walk(n) {
+        if (!n) return;
+        if (n.cycle) {
+            cyclePaths.push(n.cyclePath);
+            return;
+        }
+        (n.children || []).forEach(walk);
+    }
+
+    walk(node);
+    return { hasCycle: cyclePaths.length > 0, cyclePaths };
+}
+
+/**
  * 트리를 문자열로 시각화 (디버깅용)
  */
 function visualizeReferenceTree(treeItem, depth = 0) {
     const indent = '  '.repeat(depth);
     let output = `${indent}🌳 ${treeItem.sourceDb} > ${treeItem.sourceField} (${treeItem.sourceType})\n`;
-    
+
     function printNode(node, nodeDepth = 1) {
         const nodeIndent = '  '.repeat(nodeDepth);
         const symbol = nodeDepth === 1 ? '├─' : '│ ';
-        output += `${nodeIndent}${symbol} [${node.fieldType}] ${node.fieldName} (${node.db})\n`;
-        
+        output += `${nodeIndent}${symbol} [${node.fieldType}] ${node.fieldName} (${node.db})${node.cycle ? ' ⚠️ 순환' : ''}\n`;
+
         if (node.children && node.children.length > 0) {
             node.children.forEach((child, idx) => {
                 printNode(child, nodeDepth + 1);
             });
         }
     }
-    
+
     if (treeItem.tree) {
         printNode(treeItem.tree);
     }
-    
+
     return output;
 }
 
@@ -412,5 +458,6 @@ module.exports = {
     buildReferenceChains,
     visualizeReferenceTree,
     _countTreeNodes,
-    _hasAnyReferences
+    _hasAnyReferences,
+    _collectCycles
 };

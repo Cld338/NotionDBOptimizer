@@ -1,73 +1,33 @@
 /**
  * analyzerService 테스트
- * 책임: 데이터 분석 서비스의 통계 계산 및 품질 점수 검증
+ * 책임: 공식 Notion 리밋 대비 사용률, IQR 기반 최적화 기회, 참조 체인 통계 검증
+ * (calculateQualityScore/analyzePerformanceIssues처럼 근거 없는 매직넘버 기반 점수를
+ *  산출하던 함수들은 재설계로 제거되었으므로 더 이상 테스트하지 않는다.)
  */
 
 const {
     analyzeDatabase,
-    calculateQualityScore,
-    analyzePerformanceIssues,
-    evaluateOptimizationOpportunities,
     checkSizeLimits,
-    analyzeDeepReferenceChains
+    getInformationalMetrics,
+    evaluateOptimizationOpportunities,
+    analyzeDeepReferenceChains,
+    _extractChainPath
 } = require('../services/analyzerService');
 
 describe('analyzerService', () => {
-    // ============================================
-    // calculateQualityScore 테스트
-    // ============================================
-    describe('calculateQualityScore', () => {
-        test('완성도 100%, 컬럼 20개, 성능점수 100일 때 품질점수는 100이어야 함', () => {
-            const score = calculateQualityScore(100, 20, 100);
-            // 100 * 0.5 + min(20/20 * 100, 100) * 0.2 + 100 * 0.3
-            // = 50 + 100 * 0.2 + 30 = 100
-            expect(score).toBe(100);
-        });
-
-        test('완성도 50%, 컬럼 10개일 때 품질점수 계산 정확성', () => {
-            const score = calculateQualityScore(50, 10, 100);
-            // 50 * 0.5 + (10/20 * 100) * 0.2 + 100 * 0.3
-            // = 25 + 50 * 0.2 + 30 = 25 + 10 + 30 = 65
-            expect(score).toBe(65);
-        });
-
-        test('낮은 성능점수는 품질점수에 음의 영향', () => {
-            const highPerf = calculateQualityScore(100, 20, 100);
-            const lowPerf = calculateQualityScore(100, 20, 50);
-            expect(highPerf).toBeGreaterThan(lowPerf);
-        });
-
-        test('성능점수 기본값 100이 적용됨', () => {
-            const scoreWithDefault = calculateQualityScore(100, 20);
-            const scoreExplicit = calculateQualityScore(100, 20, 100);
-            expect(scoreWithDefault).toBe(scoreExplicit);
-        });
-
-        test('0값 입력 처리: 모두 0이면 점수는 0', () => {
-            const score = calculateQualityScore(0, 0, 0);
-            expect(score).toBe(0);
-        });
-
-        test('컬럼 수 20개 초과시 점수는 최대값으로 캡핑됨', () => {
-            const score20 = calculateQualityScore(100, 20, 100);
-            const score40 = calculateQualityScore(100, 40, 100);
-            expect(score20).toBe(score40); // 둘 다 같은 값
-        });
-    });
-
     // ============================================
     // analyzeDatabase 테스트
     // ============================================
     describe('analyzeDatabase', () => {
         const mockRecords = [
-            { id: '1', properties: { name: 'Item 1', status: 'Active' } },
-            { id: '2', properties: { name: 'Item 2', status: null } },
-            { id: '3', properties: { name: '', status: 'Inactive' } }
+            { id: '1', last_edited_time: '2024-01-01T00:00:00Z', properties: { name: 'Item 1', status: 'Active' } },
+            { id: '2', last_edited_time: '2024-01-02T00:00:00Z', properties: { name: 'Item 2', status: null } },
+            { id: '3', last_edited_time: '2024-01-03T00:00:00Z', properties: { name: '', status: 'Inactive' } }
         ];
 
         const mockProperties = {
             name: { name: 'Name', type: 'title' },
-            status: { name: 'Status', type: 'select' }
+            status: { name: 'Status', type: 'select', select: { options: [{ name: 'Active' }, { name: 'Inactive' }] } }
         };
 
         test('데이터베이스 분석은 총 레코드 수 반환', () => {
@@ -80,11 +40,13 @@ describe('analyzerService', () => {
             expect(result.totalColumns).toBe(2);
         });
 
-        test('데이터베이스 분석은 완성도 점수 포함', () => {
+        test('데이터베이스 분석은 DAMA 데이터 품질 차원을 포함', () => {
             const result = analyzeDatabase(mockRecords, mockProperties, ['name', 'status']);
-            expect(result.overallCompleteness).toBeDefined();
-            expect(result.overallCompleteness).toBeGreaterThanOrEqual(0);
-            expect(result.overallCompleteness).toBeLessThanOrEqual(100);
+            expect(result.dataQuality).toBeDefined();
+            expect(result.dataQuality.completeness.overall).toBeGreaterThanOrEqual(0);
+            expect(result.dataQuality.completeness.overall).toBeLessThanOrEqual(100);
+            expect(result.dataQuality.accuracy.applicable).toBe(false);
+            expect(result.dataQuality.consistency.applicable).toBe(false);
         });
 
         test('데이터베이스 분석은 컬럼별 통계 반환', () => {
@@ -94,10 +56,10 @@ describe('analyzerService', () => {
             expect(result.columnStats.status).toBeDefined();
         });
 
-        test('데이터베이스 분석은 품질 점수 포함', () => {
+        test('데이터베이스 분석은 성능 분석 결과에 hardLimits를 포함하고 qualityScore는 더 이상 존재하지 않음', () => {
             const result = analyzeDatabase(mockRecords, mockProperties, ['name', 'status']);
-            expect(result.qualityScore).toBeDefined();
-            expect(typeof result.qualityScore).toBe('number');
+            expect(result.qualityScore).toBeUndefined();
+            expect(result.performanceAnalysis.hardLimits).toBeDefined();
         });
 
         test('빈 레코드 리스트는 0 레코드 반환', () => {
@@ -107,148 +69,24 @@ describe('analyzerService', () => {
 
         test('컬럼 통계 사전 계산시 재계산하지 않음', () => {
             const preCalculatedStats = {
-                name: { completeness: 100, filledCount: 3 },
-                status: { completeness: 67, filledCount: 2 }
+                name: { name: 'Name', type: 'title', completeness: 100, filledCount: 3, uniqueCount: 3 },
+                status: { name: 'Status', type: 'select', completeness: 67, filledCount: 2, uniqueCount: 2 }
             };
             const result = analyzeDatabase(
-                mockRecords, 
-                mockProperties, 
+                mockRecords,
+                mockProperties,
                 ['name', 'status'],
                 preCalculatedStats
             );
             expect(result.columnStats).toEqual(preCalculatedStats);
         });
-    });
 
-    // ============================================
-    // analyzePerformanceIssues 테스트
-    // ============================================
-    describe('analyzePerformanceIssues', () => {
-        test('정상 데이터베이스는 "good" 심각도 반환', () => {
-            const records = Array(500).fill(null).map((_, i) => ({
-                id: i,
-                properties: { col: `value${i}` }
-            }));
-            const properties = {
-                col: { name: 'Column', type: 'text' }
-            };
-            
-            const result = analyzePerformanceIssues(records, properties, ['col']);
-            expect(result.severity).toBe('good');
-            expect(result.score).toBe(100);
-        });
-
-        test('1000개 이상 페이지는 warning 심각도 반환', () => {
-            const records = Array(1500).fill(null).map((_, i) => ({
-                id: i,
-                properties: { col: `value${i}` }
-            }));
-            const properties = {
-                col: { name: 'Column', type: 'text' }
-            };
-            
-            const result = analyzePerformanceIssues(records, properties, ['col']);
-            expect(result.factors.length).toBeGreaterThan(0);
-            expect(result.score).toBeLessThan(100);
-        });
-
-        test('5000개 이상 페이지는 critical 심각도에 도달하기 위해 점수가 낮음', () => {
-            const records = Array(5500).fill(null).map((_, i) => ({
-                id: i,
-                properties: { col: `value${i}` }
-            }));
-            const properties = {
-                col: { name: 'Column', type: 'text' }
-            };
-            
-            const result = analyzePerformanceIssues(records, properties, ['col']);
-            // 5500개 페이지는 critical 인자를 포함
-            expect(result.score).toBeLessThan(100);
-            expect(result.factors.length).toBeGreaterThan(0);
-        });
-
-        test('30개 이상 속성은 성능 이슈 추출', () => {
-            const records = [{ id: 1, properties: {} }];
-            const properties = {};
-            const propertyNames = [];
-            
-            for (let i = 0; i < 35; i++) {
-                properties[`col${i}`] = { name: `Column ${i}`, type: 'text' };
-                propertyNames.push(`col${i}`);
-            }
-            
-            const result = analyzePerformanceIssues(records, properties, propertyNames);
-            const propertyCountIssue = result.factors.find(f => f.type === 'property_count');
-            expect(propertyCountIssue).toBeDefined();
-        });
-
-        test('10개 이상 수식/롤업 속성은 이슈 추출', () => {
-            const records = [{ id: 1, properties: {} }];
-            const properties = {};
-            
-            for (let i = 0; i < 12; i++) {
-                properties[`formula${i}`] = { name: `Formula ${i}`, type: i < 6 ? 'formula' : 'rollup' };
-            }
-            
-            const result = analyzePerformanceIssues(records, properties, Object.keys(properties));
-            const complexLogicIssue = result.factors.find(f => f.type === 'complex_logic');
-            expect(complexLogicIssue).toBeDefined();
-        });
-    });
-
-    // ============================================
-    // evaluateOptimizationOpportunities 테스트
-    // ============================================
-    describe('evaluateOptimizationOpportunities', () => {
-        test('저활용도 속성(30% 미만)은 최적화 기회로 식별', () => {
-            const columnStats = {
-                unused: { name: 'Unused Column', completeness: 20, filledCount: 2 }
-            };
-            const properties = {
-                unused: { name: 'Unused Column', type: 'text' }
-            };
-            
-            const result = evaluateOptimizationOpportunities([], properties, ['unused'], columnStats);
-            const unusedOpportunity = result.find(o => o.type === 'unused_property');
-            expect(unusedOpportunity).toBeDefined();
-        });
-
-        test('고활용도 필터링 속성은 필터링 최적화 기회로 식별', () => {
-            const records = Array(100).fill(null).map((_, i) => ({
-                id: i,
-                properties: { 
-                    status: 'Active',
-                    priority: 'High',
-                    category: 'A'
-                }
-            }));
-
-            const properties = {
-                status: { name: 'Status', type: 'select' },
-                priority: { name: 'Priority', type: 'select' },
-                category: { name: 'Category', type: 'select' },
-                description: { name: 'Description', type: 'text' },
-                notes: { name: 'Notes', type: 'text' },
-                tags: { name: 'Tags', type: 'text' },
-                author: { name: 'Author', type: 'text' },
-                date: { name: 'Date', type: 'text' },
-                count: { name: 'Count', type: 'text' },
-                value: { name: 'Value', type: 'text' },
-                formula: { name: 'Formula', type: 'formula' }
-            };
-            
-            const result = evaluateOptimizationOpportunities(
-                records,
-                properties,
-                Object.keys(properties)
-            );
-            const filteringOpp = result.find(o => o.type === 'filtering_optimization');
-            expect(filteringOpp).toBeDefined();
-        });
-
-        test('빈 데이터베이스는 빈 기회 배열 반환', () => {
-            const result = evaluateOptimizationOpportunities([], {}, []);
-            expect(Array.isArray(result)).toBe(true);
+        test('4-인자 호출과 5-인자(참조 체인 포함) 호출의 최상위 응답 shape이 동일함 (라우트 정합성 회귀 테스트)', () => {
+            const withoutChains = analyzeDatabase(mockRecords, mockProperties, ['name', 'status']);
+            const withChains = analyzeDatabase(mockRecords, mockProperties, ['name', 'status'], {}, []);
+            expect(Object.keys(withoutChains).sort()).toEqual(Object.keys(withChains).sort());
+            expect(Object.keys(withoutChains.performanceAnalysis).sort())
+                .toEqual(Object.keys(withChains.performanceAnalysis).sort());
         });
     });
 
@@ -256,49 +94,185 @@ describe('analyzerService', () => {
     // checkSizeLimits 테스트
     // ============================================
     describe('checkSizeLimits', () => {
-        test('정상 크기 데이터베이스는 "ok" 상태 반환', () => {
+        test('정상 크기 데이터베이스는 모든 항목이 ok 레벨', () => {
             const records = Array(100).fill(null).map((_, i) => ({
                 id: i,
                 properties: { name: `Item ${i}` }
             }));
-            const properties = { name: { name: 'Name', type: 'text' } };
-            
+            const properties = { name: { name: 'Name', type: 'title' } };
+
             const result = checkSizeLimits(records, properties, ['name']);
-            expect(result.status).toBe('ok');
+            expect(result.hardLimits.properties.level).toBe('ok');
+            expect(result.hardLimits.rows.level).toBe('ok');
+            expect(result.warnings.length).toBe(0);
         });
 
-        test('크기 제한 체크는 경고 배열 포함', () => {
+        test('hardLimits는 공식 문서에 실재하는 6개 리밋만 포함', () => {
             const records = [{ id: 1, properties: { name: 'test' } }];
-            const properties = { name: { name: 'Name', type: 'text' } };
-            
+            const properties = { name: { name: 'Name', type: 'title' } };
+
             const result = checkSizeLimits(records, properties, ['name']);
-            expect(Array.isArray(result.warnings)).toBe(true);
+            expect(Object.keys(result.hardLimits).sort()).toEqual(
+                ['dbStructure', 'pageSize', 'properties', 'relationRefs', 'rows', 'schemaSize'].sort()
+            );
+            expect(result.hardLimits.properties.limit).toBe(500);
+            expect(result.hardLimits.rows.limit).toBe(250000);
+            expect(result.hardLimits.relationRefs.limit).toBe(10000);
         });
 
-        test('크기 제한 체크는 메트릭 포함', () => {
-            const records = [{ id: 1, properties: { name: 'test' } }];
-            const properties = { name: { name: 'Name', type: 'text' } };
-            
-            const result = checkSizeLimits(records, properties, ['name']);
-            expect(result.metrics).toBeDefined();
-            expect(result.metrics.totalDataSize).toBeDefined();
-        });
-
-        test('관계형 필드 10000개 초과는 critical 경고', () => {
-            // 각 레코드마다 9000개의 관계형 참조 생성
+        test('관계형 필드 참조가 10000개를 초과하면 relationRefs가 critical', () => {
             const records = Array(2).fill(null).map((_, i) => ({
                 id: i,
-                properties: { 
-                    relations: Array(9000).fill(null).map((_, j) => ({ id: `ref${j}` }))
+                properties: {
+                    relations: Array(10001).fill(null).map((_, j) => `ref${j}`)
                 }
             }));
-            const properties = { 
+            const properties = {
                 relations: { name: 'Relations', type: 'relation' }
             };
-            
+
             const result = checkSizeLimits(records, properties, ['relations']);
-            const relationWarning = result.warnings.find(w => w.type === 'relation_limit');
-            expect(relationWarning?.level).toBe('critical');
+            expect(result.hardLimits.relationRefs.level).toBe('critical');
+            expect(result.warnings.some(w => w.type === 'relationRefs')).toBe(true);
+        });
+
+        test('버그 수정 확인: select 속성의 options가 prop.select.options 경로에서 읽혀 구조 크기에 반영됨', () => {
+            const records = [{ id: 1, properties: { status: 'A' } }];
+            const propertiesWithoutOptions = {
+                status: { name: 'Status', type: 'select', select: { options: [] } }
+            };
+            const propertiesWithManyOptions = {
+                status: {
+                    name: 'Status',
+                    type: 'select',
+                    select: { options: Array(50).fill(null).map((_, i) => ({ id: `id${i}`, name: `Option ${i}`, color: 'blue' })) }
+                }
+            };
+
+            const small = checkSizeLimits(records, propertiesWithoutOptions, ['status']);
+            const large = checkSizeLimits(records, propertiesWithManyOptions, ['status']);
+
+            expect(large.hardLimits.dbStructure.current).toBeGreaterThan(small.hardLimits.dbStructure.current);
+        });
+    });
+
+    // ============================================
+    // getInformationalMetrics 테스트
+    // ============================================
+    describe('getInformationalMetrics', () => {
+        test('severity/score 없이 순수 수치만 반환', () => {
+            const records = Array(10).fill(null).map((_, i) => ({ id: i, properties: {} }));
+            const properties = {
+                a: { name: 'A', type: 'formula' },
+                b: { name: 'B', type: 'rollup' },
+                c: { name: 'C', type: 'relation' }
+            };
+
+            const result = getInformationalMetrics(records, properties, ['a', 'b', 'c'], []);
+            expect(result.recordCount).toBe(10);
+            expect(result.formulaRollupCount).toBe(2);
+            expect(result.relationCount).toBe(1);
+            expect(result.score).toBeUndefined();
+            expect(result.severity).toBeUndefined();
+        });
+
+        test('체인 깊이 배열로 chainDepthStats 계산', () => {
+            const result = getInformationalMetrics([], {}, [], [2, 3, 4, 4, 3]);
+            expect(result.chainDepthStats.max).toBe(4);
+            expect(result.chainDepthStats.median).toBe(3);
+        });
+    });
+
+    // ============================================
+    // evaluateOptimizationOpportunities 테스트 (IQR 기반)
+    // ============================================
+    describe('evaluateOptimizationOpportunities', () => {
+        test('다른 속성들과 비교해 통계적으로 이상치인 저활용 속성을 식별', () => {
+            // 9개는 완성도가 90%대로 고르게 분포, 1개만 5%로 뚝 떨어짐(이상치)
+            const columnStats = {};
+            const properties = {};
+            for (let i = 0; i < 9; i++) {
+                columnStats[`col${i}`] = { name: `Col ${i}`, completeness: 90 + i };
+                properties[`col${i}`] = { name: `Col ${i}`, type: 'text' };
+            }
+            columnStats.outlier = { name: 'Outlier', completeness: 5 };
+            properties.outlier = { name: 'Outlier', type: 'text' };
+
+            const result = evaluateOptimizationOpportunities([], properties, Object.keys(properties), columnStats);
+            const unusedOpportunity = result.find(o => o.type === 'unused_property' && o.property === 'Outlier');
+            expect(unusedOpportunity).toBeDefined();
+        });
+
+        test('완성도가 고르게 분포되어 있으면(이상치 없음) 저활용 속성을 만들어내지 않음', () => {
+            const columnStats = {
+                a: { name: 'A', completeness: 88 },
+                b: { name: 'B', completeness: 90 },
+                c: { name: 'C', completeness: 85 },
+                d: { name: 'D', completeness: 92 }
+            };
+            const properties = {
+                a: { name: 'A', type: 'text' }, b: { name: 'B', type: 'text' },
+                c: { name: 'C', type: 'text' }, d: { name: 'D', type: 'text' }
+            };
+
+            const result = evaluateOptimizationOpportunities([], properties, Object.keys(properties), columnStats);
+            expect(result.find(o => o.type === 'unused_property')).toBeUndefined();
+        });
+
+        test('필터링 비용이 높은 속성(relation/formula/rollup)이 단순 속성보다 많으면 필터링 최적화 기회 식별', () => {
+            const properties = {
+                status: { name: 'Status', type: 'select' },
+                rel1: { name: 'Rel1', type: 'relation' },
+                rel2: { name: 'Rel2', type: 'relation' },
+                formula1: { name: 'Formula1', type: 'formula' }
+            };
+
+            const result = evaluateOptimizationOpportunities([], properties, Object.keys(properties), {});
+            const filteringOpp = result.find(o => o.type === 'filtering_optimization');
+            expect(filteringOpp).toBeDefined();
+        });
+
+        test('빈 데이터베이스는 빈 기회 배열 반환', () => {
+            const result = evaluateOptimizationOpportunities([], {}, [], {});
+            expect(Array.isArray(result)).toBe(true);
+            expect(result.length).toBe(0);
+        });
+    });
+
+    // ============================================
+    // _extractChainPath 테스트 (첫 자식만 따라가던 버그의 회귀 테스트)
+    // ============================================
+    describe('_extractChainPath', () => {
+        test('첫 자식은 얕고 둘째 자식이 깊은 트리에서 실제 최장 경로(둘째 자식 쪽)를 선택함', () => {
+            const shallowFirstChild = { db: 'DB1', fieldName: 'Shallow', type: 'formula', children: [] };
+            const deepGrandchild = { db: 'DB1', fieldName: 'Grandchild', type: 'formula', children: [] };
+            const deepSecondChild = { db: 'DB1', fieldName: 'Deep', type: 'formula', children: [deepGrandchild] };
+
+            const tree = {
+                db: 'DB1',
+                fieldName: 'Root',
+                type: 'formula',
+                children: [shallowFirstChild, deepSecondChild] // 첫 자식이 얕음 — 이전 버그라면 이 가지를 선택해 depth=2로 잘못 보고
+            };
+
+            const result = _extractChainPath(tree, 'DB1', 'Root', 'formula');
+
+            expect(result.depth).toBe(3); // Root -> Deep -> Grandchild
+            expect(result.path.map(p => p.field)).toEqual(['Root', 'Deep', 'Grandchild']);
+        });
+
+        test('순환(cycle) 노드가 있는 가지는 탐색을 중단하고 다른 가지를 선택함', () => {
+            const cyclicChild = { db: 'DB1', fieldName: 'Cyclic', type: 'formula', cycle: true, cyclePath: ['DB1|Root', 'DB1|Cyclic'], children: [] };
+            const normalGrandchild = { db: 'DB1', fieldName: 'End', type: 'formula', children: [] };
+            const normalChild = { db: 'DB1', fieldName: 'Normal', type: 'formula', children: [normalGrandchild] };
+
+            const tree = {
+                db: 'DB1', fieldName: 'Root', type: 'formula',
+                children: [cyclicChild, normalChild]
+            };
+
+            const result = _extractChainPath(tree, 'DB1', 'Root', 'formula');
+            expect(result.path.map(p => p.field)).toEqual(['Root', 'Normal', 'End']);
         });
     });
 
@@ -306,101 +280,80 @@ describe('analyzerService', () => {
     // analyzeDeepReferenceChains 테스트
     // ============================================
     describe('analyzeDeepReferenceChains', () => {
-        test('빈 참조 체인 배열은 빈 배열 반환', () => {
+        test('빈 참조 체인 배열은 빈 deepReferenceChains/cyclicChains 반환', () => {
             const result = analyzeDeepReferenceChains([]);
-            expect(Array.isArray(result)).toBe(true);
-            expect(result.length).toBe(0);
-        });
-
-        test('3단계 미만 체인은 필터링됨', () => {
-            const chains = [
-                {
-                    sourceDb: 'DB1',
-                    sourceField: 'Field1',
-                    sourceType: 'formula',
-                    tree: { depth: 2, db: 'DB1', fieldName: 'Field1' }
-                }
-            ];
-            const result = analyzeDeepReferenceChains(chains);
-            // 깊이가 2이므로 결과에 포함되지 않을 가능성
-            expect(Array.isArray(result)).toBe(true);
+            expect(result.deepReferenceChains).toEqual([]);
+            expect(result.cyclicChains).toEqual([]);
         });
 
         test('undefined tree는 안전하게 처리됨', () => {
             const chains = [
+                { sourceDb: 'DB1', sourceField: 'Field1', sourceType: 'formula' }
+            ];
+            expect(() => analyzeDeepReferenceChains(chains)).not.toThrow();
+        });
+
+        test('참조가 없는(자식 없는) 트리는 결과에서 제외', () => {
+            const chains = [
                 {
-                    sourceDb: 'DB1',
-                    sourceField: 'Field1',
-                    sourceType: 'formula'
-                    // tree 속성 없음
+                    sourceDb: 'DB1', sourceField: 'Field1', sourceType: 'formula',
+                    tree: { db: 'DB1', fieldName: 'Field1', type: 'formula', children: [] }
                 }
             ];
-            expect(() => {
-                analyzeDeepReferenceChains(chains);
-            }).not.toThrow();
+            const result = analyzeDeepReferenceChains(chains, []);
+            expect(result.deepReferenceChains.length).toBe(0);
         });
 
-        test('빈 레코드 배열 처리', () => {
-            const chains = [];
-            expect(() => {
-                analyzeDeepReferenceChains(chains, []);
-            }).not.toThrow();
-        });
-    });
-
-    // ============================================
-    // 통합 시나리오 테스트
-    // ============================================
-    describe('통합 시나리오', () => {
-        test('복잡한 데이터베이스 전체 분석 흐름', () => {
-            const records = Array(500).fill(null).map((_, i) => ({
-                id: `id${i}`,
-                properties: {
-                    title: `Item ${i}`,
-                    priority: i % 3 === 0 ? null : ['High', 'Medium', 'Low'][i % 3],
-                    tags: i % 2 === 0 ? ['tag1', 'tag2'] : []
+        test('상호 순환(A↔B)에서 양쪽 다 사라지지 않고 하나로 병합되어 살아남음 (필터-순환 상호작용 버그 회귀 테스트)', () => {
+            // A→B, B→A로 서로를 참조하는 진짜 순환. buildReferenceChains는 A와 B 각각을
+            // 별도의 시작점으로 처리하므로 두 개의 referenceChains 항목이 생기고,
+            // A의 경로에는 B가, B의 경로에는 A가 포함된다. DAG 전제의 _filterIncludedChains를
+            // 그대로 적용하면 "서로가 서로에게 포함됨"으로 오판해 둘 다 사라지는 버그가 있었다.
+            const chains = [
+                {
+                    sourceDb: 'DB1', sourceField: 'A', sourceType: 'formula',
+                    hasCycle: true, cyclePaths: [['DB1|A', 'DB1|B', 'DB1|A']],
+                    tree: {
+                        db: 'DB1', fieldName: 'A', type: 'formula',
+                        children: [{
+                            db: 'DB1', fieldName: 'B', type: 'formula',
+                            children: [{ db: 'DB1', fieldName: 'A', type: 'formula', cycle: true, cyclePath: ['DB1|A', 'DB1|B', 'DB1|A'], children: [] }]
+                        }]
+                    }
+                },
+                {
+                    sourceDb: 'DB1', sourceField: 'B', sourceType: 'formula',
+                    hasCycle: true, cyclePaths: [['DB1|B', 'DB1|A', 'DB1|B']],
+                    tree: {
+                        db: 'DB1', fieldName: 'B', type: 'formula',
+                        children: [{
+                            db: 'DB1', fieldName: 'A', type: 'formula',
+                            children: [{ db: 'DB1', fieldName: 'B', type: 'formula', cycle: true, cyclePath: ['DB1|B', 'DB1|A', 'DB1|B'], children: [] }]
+                        }]
+                    }
                 }
-            }));
+            ];
 
-            const properties = {
-                title: { name: 'Title', type: 'title' },
-                priority: { name: 'Priority', type: 'select' },
-                tags: { name: 'Tags', type: 'multi_select' }
-            };
-
-            const result = analyzeDatabase(
-                records,
-                properties,
-                ['title', 'priority', 'tags']
-            );
-
-            expect(result.totalRecords).toBe(500);
-            expect(result.totalColumns).toBe(3);
-            expect(result.qualityScore).toBeDefined();
-            expect(result.columnStats).toBeDefined();
-            expect(Object.keys(result.columnStats).length).toBeGreaterThan(0);
+            const result = analyzeDeepReferenceChains(chains, [{ id: 1 }]);
+            // 두 시작점 모두 사라지지 않고, 동일 순환이므로 하나로 병합되어 최소 1건은 남아야 한다
+            expect(result.cyclicChains.length).toBe(1);
+            expect(result.deepReferenceChains.length).toBe(0);
         });
 
-        test('성능 분석과 최적화 기회 결합', () => {
-            const records = Array(100).fill(null).map((_, i) => ({
-                id: i,
-                properties: { name: `Item ${i}`, status: 'Active' }
-            }));
-
-            const properties = {
-                name: { name: 'Name', type: 'text' },
-                status: { name: 'Status', type: 'select' }
-            };
-
-            const perfIssues = analyzePerformanceIssues(records, properties, ['name', 'status']);
-            const opportunities = evaluateOptimizationOpportunities(
-                records,
-                properties,
-                ['name', 'status']
-            );
-
-            expect(perfIssues).toBeDefined();
-            expect(opportunities).toBeDefined();
+        test('hasCycle이 true인 체인은 cyclicChains로 분리됨', () => {
+            const chains = [{
+                sourceDb: 'DB1', sourceField: 'A', sourceType: 'formula',
+                hasCycle: true,
+                cyclePaths: [['DB1|A', 'DB1|B', 'DB1|A']],
+                tree: {
+                    db: 'DB1', fieldName: 'A', type: 'formula',
+                    children: [{ db: 'DB1', fieldName: 'B', type: 'formula', children: [] }]
+                }
+            }];
+            const result = analyzeDeepReferenceChains(chains, [{ id: 1 }]);
+            expect(result.cyclicChains.length).toBe(1);
+            expect(result.deepReferenceChains.length).toBe(0);
+            expect(result.cyclicChains[0].optimizationTips.some(t => t.title.includes('순환'))).toBe(true);
         });
     });
 });

@@ -124,8 +124,8 @@ describe('Integration Tests - 통합 시나리오', () => {
 
             expect(result.totalRecords).toBe(5000);
             expect(result.totalColumns).toBe(3);
-            expect(result.qualityScore).toBeDefined();
-            expect(typeof result.qualityScore).toBe('number');
+            expect(result.dataQuality).toBeDefined();
+            expect(typeof result.dataQuality.completeness.overall).toBe('number');
         });
 
         test('다중 페이지네이션 처리 (최대 100개/페이지)', async () => {

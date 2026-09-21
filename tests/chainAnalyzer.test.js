@@ -1,16 +1,23 @@
 /**
  * chainAnalyzer 테스트
- * 책임: 데이터베이스 간 참조 체인 분석 및 트리 구조 검증
+ * 책임: 데이터베이스 간 참조 체인 추적 및 트리 구조 검증
+ * 핵심 회귀 테스트: (1) 다이아몬드 패턴이 순환 참조로 오판되지 않는지,
+ *                   (2) 진짜 순환 참조가 정확히 감지되는지
  */
 
+const mockExtractFieldReferencesFromFormula = jest.fn(() => []);
 jest.mock('../utils/formulaParser', () => ({
-    extractFieldReferencesFromFormula: jest.fn(() => [])
+    extractFieldReferencesFromFormula: (...args) => mockExtractFieldReferencesFromFormula(...args)
 }));
 
-const { buildReferenceChains } = require('../services/chainAnalyzer');
+const { buildReferenceChains, _collectCycles } = require('../services/chainAnalyzer');
 
 describe('chainAnalyzer', () => {
-    // Mock 데이터 설정
+    beforeEach(() => {
+        mockExtractFieldReferencesFromFormula.mockReset();
+        mockExtractFieldReferencesFromFormula.mockReturnValue([]);
+    });
+
     const mockDbPropertiesMap = new Map([
         ['db1', {
             databaseTitle: 'Database 1',
@@ -23,7 +30,7 @@ describe('chainAnalyzer', () => {
             databaseTitle: 'Database 2',
             properties: [
                 { name: 'Name', type: 'title', id: 'prop3' },
-                { name: 'Rollup Field', type: 'rollup', id: 'prop4', 
+                { name: 'Rollup Field', type: 'rollup', id: 'prop4',
                   referencedDatabaseId: 'db1', referencedProperty: 'Formula Field' }
             ]
         }]
@@ -47,22 +54,100 @@ describe('chainAnalyzer', () => {
     };
 
     // ============================================
-    // buildReferenceChains 테스트
+    // 핵심 회귀 테스트: 다이아몬드 패턴 / 순환 참조
     // ============================================
-    describe('buildReferenceChains', () => {
-        test('Formula 필드를 시작점으로 하는 참조 체인 생성', () => {
-            const result = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap,
-                false
-            );
+    describe('다이아몬드 패턴과 순환 참조 (ancestorPath 경로-지역 방식)', () => {
+        test('A가 B,C를 참조하고 B,C가 각각 D를 참조하는 다이아몬드는 양쪽 가지 모두 D를 포함해야 함 (순환 오판 방지)', () => {
+            mockExtractFieldReferencesFromFormula.mockImplementation((expression) => {
+                if (expression === 'A_EXPR') return ['B', 'C'];
+                if (expression === 'B_EXPR') return ['D'];
+                if (expression === 'C_EXPR') return ['D'];
+                return [];
+            });
 
-            expect(Array.isArray(result)).toBe(true);
-            expect(result.length).toBeGreaterThanOrEqual(0);
+            const dbMap = new Map([
+                ['db1', {
+                    databaseTitle: 'DB1',
+                    properties: [
+                        { name: 'A', type: 'formula', id: 'a', expression: 'A_EXPR' },
+                        { name: 'B', type: 'formula', id: 'b', expression: 'B_EXPR' },
+                        { name: 'C', type: 'formula', id: 'c', expression: 'C_EXPR' },
+                        { name: 'D', type: 'title', id: 'd' }
+                    ]
+                }]
+            ]);
+
+            const result = buildReferenceChains(dbMap, new Map(), new Map(), {}, false);
+            const aChain = result.find(r => r.sourceField === 'A');
+
+            expect(aChain).toBeDefined();
+            expect(aChain.hasCycle).toBe(false);
+            expect(aChain.tree.children.map(c => c.fieldName).sort()).toEqual(['B', 'C']);
+
+            const bNode = aChain.tree.children.find(c => c.fieldName === 'B');
+            const cNode = aChain.tree.children.find(c => c.fieldName === 'C');
+
+            // ★ 회귀 포인트: 이전 버그(전역 공유 visited)라면 둘 중 하나만 D를 갖고 나머지는 누락됨
+            expect(bNode.children.map(c => c.fieldName)).toEqual(['D']);
+            expect(cNode.children.map(c => c.fieldName)).toEqual(['D']);
+            expect(bNode.children[0].cycle).toBeFalsy();
+            expect(cNode.children[0].cycle).toBeFalsy();
         });
 
+        test('A가 B를 참조하고 B가 다시 A를 참조하는 진짜 순환은 cycle:true로 정확히 감지되고 무한루프 없이 종료됨', () => {
+            mockExtractFieldReferencesFromFormula.mockImplementation((expression) => {
+                if (expression === 'A_EXPR') return ['B'];
+                if (expression === 'B_EXPR') return ['A'];
+                return [];
+            });
+
+            const dbMap = new Map([
+                ['db1', {
+                    databaseTitle: 'DB1',
+                    properties: [
+                        { name: 'A', type: 'formula', id: 'a', expression: 'A_EXPR' },
+                        { name: 'B', type: 'formula', id: 'b', expression: 'B_EXPR' }
+                    ]
+                }]
+            ]);
+
+            const result = buildReferenceChains(dbMap, new Map(), new Map(), {}, false);
+            const aChain = result.find(r => r.sourceField === 'A');
+
+            expect(aChain).toBeDefined();
+            expect(aChain.hasCycle).toBe(true);
+            expect(aChain.cyclePaths.length).toBeGreaterThan(0);
+
+            const bNode = aChain.tree.children.find(c => c.fieldName === 'B');
+            const cycleNode = bNode.children.find(c => c.fieldName === 'A');
+            expect(cycleNode.cycle).toBe(true);
+            expect(cycleNode.cyclePath).toEqual(['db1|A', 'db1|B', 'db1|A']);
+        });
+
+        test('_collectCycles는 트리 내 모든 순환 노드를 수집한다', () => {
+            const tree = {
+                db: 'DB1', fieldName: 'Root', children: [
+                    { db: 'DB1', fieldName: 'Normal', children: [] },
+                    { db: 'DB1', fieldName: 'Cyclic', cycle: true, cyclePath: ['DB1|Root', 'DB1|Cyclic'], children: [] }
+                ]
+            };
+            const { hasCycle, cyclePaths } = _collectCycles(tree);
+            expect(hasCycle).toBe(true);
+            expect(cyclePaths).toEqual([['DB1|Root', 'DB1|Cyclic']]);
+        });
+
+        test('순환이 없는 트리는 hasCycle: false', () => {
+            const tree = { db: 'DB1', fieldName: 'Root', children: [{ db: 'DB1', fieldName: 'Leaf', children: [] }] };
+            const { hasCycle, cyclePaths } = _collectCycles(tree);
+            expect(hasCycle).toBe(false);
+            expect(cyclePaths).toEqual([]);
+        });
+    });
+
+    // ============================================
+    // buildReferenceChains 기본 동작
+    // ============================================
+    describe('buildReferenceChains', () => {
         test('Rollup 필드를 시작점으로 하는 참조 체인 생성', () => {
             const result = buildReferenceChains(
                 mockDbPropertiesMap,
@@ -72,10 +157,12 @@ describe('chainAnalyzer', () => {
                 false
             );
 
-            expect(Array.isArray(result)).toBe(true);
+            const rollupChain = result.find(r => r.sourceType === 'rollup');
+            expect(rollupChain).toBeDefined();
+            expect(rollupChain.tree.fieldType).toBe('rollup');
         });
 
-        test('참조 체인은 sourceDb, sourceField, sourceDbId, sourceType 포함', () => {
+        test('참조 체인은 sourceDb, sourceField, sourceDbId, sourceType, hasCycle 포함', () => {
             const result = buildReferenceChains(
                 mockDbPropertiesMap,
                 mockPropertyIdMapByDb,
@@ -84,58 +171,20 @@ describe('chainAnalyzer', () => {
                 false
             );
 
-            if (result.length > 0) {
-                const chain = result[0];
-                expect(chain).toHaveProperty('sourceDb');
-                expect(chain).toHaveProperty('sourceField');
-                expect(chain).toHaveProperty('sourceDbId');
-                expect(chain).toHaveProperty('sourceType');
-                expect(chain).toHaveProperty('tree');
-            }
+            expect(result.length).toBeGreaterThan(0);
+            const chain = result[0];
+            expect(chain).toHaveProperty('sourceDb');
+            expect(chain).toHaveProperty('sourceField');
+            expect(chain).toHaveProperty('sourceDbId');
+            expect(chain).toHaveProperty('sourceType');
+            expect(chain).toHaveProperty('tree');
+            expect(chain).toHaveProperty('hasCycle');
+            expect(chain).toHaveProperty('cyclePaths');
         });
 
         test('빈 데이터베이스 맵은 빈 배열 반환', () => {
-            const emptyDbMap = new Map();
-            const result = buildReferenceChains(
-                emptyDbMap,
-                new Map(),
-                new Map(),
-                {}
-            );
-
+            const result = buildReferenceChains(new Map(), new Map(), new Map(), {});
             expect(result).toEqual([]);
-        });
-
-        test('다수의 데이터베이스에서 참조 체인 추출', () => {
-            const multiDbMap = new Map([
-                ['db1', {
-                    databaseTitle: 'DB1',
-                    properties: [
-                        { name: 'Field1', type: 'formula', id: 'f1' }
-                    ]
-                }],
-                ['db2', {
-                    databaseTitle: 'DB2',
-                    properties: [
-                        { name: 'Field2', type: 'rollup', id: 'f2' }
-                    ]
-                }],
-                ['db3', {
-                    databaseTitle: 'DB3',
-                    properties: [
-                        { name: 'Field3', type: 'title', id: 'f3' }
-                    ]
-                }]
-            ]);
-
-            const result = buildReferenceChains(
-                multiDbMap,
-                new Map(),
-                new Map(),
-                {}
-            );
-
-            expect(Array.isArray(result)).toBe(true);
         });
 
         test('Title, Checkbox 같은 단순 필드는 시작점이 아님', () => {
@@ -145,71 +194,44 @@ describe('chainAnalyzer', () => {
                     properties: [
                         { name: 'Title', type: 'title', id: 'prop1' },
                         { name: 'Checkbox', type: 'checkbox', id: 'prop2' },
-                        { name: 'Formula', type: 'formula', id: 'prop3' }
+                        { name: 'Formula', type: 'formula', id: 'prop3', expression: '' }
                     ]
                 }]
             ]);
 
-            const result = buildReferenceChains(
-                dbMap,
-                new Map([['db1', { prop1: 'Title', prop2: 'Checkbox', prop3: 'Formula' }]]),
-                new Map(),
-                {}
-            );
-
-            // Formula만 시작점이어야 함
-            const formulaChains = result.filter(r => r.sourceType === 'formula');
-            expect(formulaChains.length).toBeGreaterThanOrEqual(0);
+            const result = buildReferenceChains(dbMap, new Map(), new Map(), {});
+            expect(result.every(r => r.sourceType === 'formula' || r.sourceType === 'rollup')).toBe(true);
         });
 
-        test('디버그 모드 활성화 시 콘솔 로깅 없음 에러', () => {
-            const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation();
-
-            const result = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap,
-                true // debug 활성화
-            );
-
-            // 에러 없이 실행되어야 함
-            expect(Array.isArray(result)).toBe(true);
-
-            consoleLogSpy.mockRestore();
-        });
-
-        test('중복 필드 처리: 같은 필드는 한 번만 처리', () => {
+        test('참조가 전혀 없는 formula는 트리가 저장되지 않음', () => {
+            mockExtractFieldReferencesFromFormula.mockReturnValue([]);
             const dbMap = new Map([
                 ['db1', {
                     databaseTitle: 'DB1',
                     properties: [
-                        { name: 'Formula', type: 'formula', id: 'prop1', expression: 'test' },
-                        { name: 'Formula', type: 'formula', id: 'prop2', expression: 'test' }
+                        { name: 'Formula', type: 'formula', id: 'prop1', expression: 'CONST_ONLY' }
                     ]
                 }]
             ]);
 
-            const result = buildReferenceChains(
-                dbMap,
-                new Map(),
-                new Map(),
-                {}
-            );
-
-            expect(Array.isArray(result)).toBe(true);
+            const result = buildReferenceChains(dbMap, new Map(), new Map(), {});
+            expect(result.length).toBe(0);
         });
 
-        test('순환 참조 방지', () => {
-            // 순환 참조 구조 생성은 쉽지 않으므로 구조만 검증
-            const result = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap
-            );
+        test('null properties는 에러를 던짐 (안전하게 처리되지 않는 기존 동작 유지)', () => {
+            const dbMap = new Map([
+                ['db1', { databaseTitle: 'DB1', properties: null }]
+            ]);
+            expect(() => buildReferenceChains(dbMap, new Map(), new Map(), {})).toThrow();
+        });
 
-            expect(Array.isArray(result)).toBe(true);
+        test('많은 참조 필드 처리 시 에러 없이 완료됨', () => {
+            const properties = [];
+            for (let i = 0; i < 50; i++) {
+                properties.push({ name: `Field${i}`, type: i % 2 === 0 ? 'formula' : 'rollup', id: `prop${i}`, expression: '' });
+            }
+            const dbMap = new Map([['db1', { databaseTitle: 'DB1', properties }]]);
+            expect(() => buildReferenceChains(dbMap, new Map(), new Map(), {})).not.toThrow();
         });
     });
 
@@ -217,7 +239,7 @@ describe('chainAnalyzer', () => {
     // 참조 체인 구조 검증
     // ============================================
     describe('참조 체인 구조', () => {
-        test('참조 체인의 tree는 객체 구조', () => {
+        test('tree 노드는 db, dbId, fieldName, fieldType, children 포함', () => {
             const result = buildReferenceChains(
                 mockDbPropertiesMap,
                 mockPropertyIdMapByDb,
@@ -225,67 +247,13 @@ describe('chainAnalyzer', () => {
                 mockGlobalPropertyIdMap
             );
 
-            if (result.length > 0) {
-                const tree = result[0].tree;
-                expect(typeof tree).toBe('object');
-                expect(tree).not.toBeNull();
-            }
-        });
-
-        test('tree 노드는 db, dbId, fieldName, fieldType 포함', () => {
-            const result = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap
-            );
-
-            if (result.length > 0 && result[0].tree) {
-                const node = result[0].tree;
-                expect(node).toHaveProperty('db');
-                expect(node).toHaveProperty('dbId');
-                expect(node).toHaveProperty('fieldName');
-                expect(node).toHaveProperty('fieldType');
-            }
-        });
-
-        test('tree는 children 배열 포함', () => {
-            const result = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap
-            );
-
-            if (result.length > 0 && result[0].tree) {
-                const node = result[0].tree;
-                expect(Array.isArray(node.children)).toBe(true);
-            }
-        });
-
-        test('tree는 expression을 저장할 수 있음 (formula)', () => {
-            const dbMap = new Map([
-                ['db1', {
-                    databaseTitle: 'DB1',
-                    properties: [
-                        { name: 'Formula', type: 'formula', id: 'prop1', expression: 'abc + 123' }
-                    ]
-                }]
-            ]);
-
-            const result = buildReferenceChains(
-                dbMap,
-                new Map([['db1', { prop1: 'Formula' }]]),
-                new Map(),
-                {}
-            );
-
-            if (result.length > 0 && result[0].tree) {
-                const node = result[0].tree;
-                if (node.fieldType === 'formula') {
-                    expect(node.expression).toBeDefined();
-                }
-            }
+            expect(result.length).toBeGreaterThan(0);
+            const node = result[0].tree;
+            expect(node).toHaveProperty('db');
+            expect(node).toHaveProperty('dbId');
+            expect(node).toHaveProperty('fieldName');
+            expect(node).toHaveProperty('fieldType');
+            expect(Array.isArray(node.children)).toBe(true);
         });
 
         test('rollup 노드는 referencedProperty 정보 포함', () => {
@@ -296,199 +264,26 @@ describe('chainAnalyzer', () => {
                 mockGlobalPropertyIdMap
             );
 
-            if (result.length > 0) {
-                const rollupChains = result.filter(r => r.sourceType === 'rollup');
-                rollupChains.forEach(chain => {
-                    if (chain.tree && chain.tree.fieldType === 'rollup') {
-                        expect(chain.tree).toHaveProperty('referencedProperty');
-                    }
-                });
-            }
+            const rollupChain = result.find(r => r.sourceType === 'rollup');
+            expect(rollupChain.tree).toHaveProperty('referencedProperty', 'Formula Field');
+            expect(rollupChain.tree).toHaveProperty('referencedPropertyDb', 'Database 1');
         });
     });
 
     // ============================================
-    // 엣지 케이스 테스트
+    // 엣지 케이스
     // ============================================
     describe('엣지 케이스', () => {
         test('undefined propertyIdMapByDb 처리', () => {
             expect(() => {
-                buildReferenceChains(
-                    mockDbPropertiesMap,
-                    undefined,
-                    mockPropertyNameMapByDb,
-                    mockGlobalPropertyIdMap
-                );
+                buildReferenceChains(mockDbPropertiesMap, undefined, mockPropertyNameMapByDb, mockGlobalPropertyIdMap);
             }).not.toThrow();
         });
 
         test('empty propertyNames 처리', () => {
-            const dbMap = new Map([
-                ['db1', {
-                    databaseTitle: 'DB1',
-                    properties: []
-                }]
-            ]);
-
-            const result = buildReferenceChains(
-                dbMap,
-                new Map(),
-                new Map(),
-                {}
-            );
-
+            const dbMap = new Map([['db1', { databaseTitle: 'DB1', properties: [] }]]);
+            const result = buildReferenceChains(dbMap, new Map(), new Map(), {});
             expect(result).toEqual([]);
-        });
-
-        test('null properties는 건너뜀 (안전하게 처리)', () => {
-            const dbMap = new Map([
-                ['db1', {
-                    databaseTitle: 'DB1',
-                    properties: null
-                }]
-            ]);
-
-            // null properties는 함수에서 에러를 던질 수 있으므로, 결과 검증
-            expect(() => {
-                buildReferenceChains(
-                    dbMap,
-                    new Map(),
-                    new Map(),
-                    {}
-                );
-            }).toThrow(); // 에러가 발생하는 것이 정상
-        });
-
-        test('깊은 참조 체인 생성', () => {
-            const deepDbMap = new Map();
-            for (let i = 0; i < 5; i++) {
-                deepDbMap.set(`db${i}`, {
-                    databaseTitle: `Database ${i}`,
-                    properties: [
-                        {
-                            name: `Formula${i}`,
-                            type: 'formula',
-                            id: `prop${i}`,
-                            expression: `prop${i - 1} + 1`
-                        }
-                    ]
-                });
-            }
-
-            const result = buildReferenceChains(
-                deepDbMap,
-                new Map(),
-                new Map(),
-                {}
-            );
-
-            expect(Array.isArray(result)).toBe(true);
-        });
-
-        test('많은 참조 필드 처리', () => {
-            const properties = [];
-            for (let i = 0; i < 50; i++) {
-                properties.push({
-                    name: `Field${i}`,
-                    type: i % 2 === 0 ? 'formula' : 'rollup',
-                    id: `prop${i}`
-                });
-            }
-
-            const dbMap = new Map([
-                ['db1', {
-                    databaseTitle: 'DB1',
-                    properties: properties
-                }]
-            ]);
-
-            const result = buildReferenceChains(
-                dbMap,
-                new Map(),
-                new Map(),
-                {}
-            );
-
-            expect(Array.isArray(result)).toBe(true);
-        });
-    });
-
-    // ============================================
-    // 통합 시나리오 테스트
-    // ============================================
-    describe('통합 시나리오', () => {
-        test('복잡한 다중 DB 참조 분석', () => {
-            const complexDbMap = new Map([
-                ['sales', {
-                    databaseTitle: 'Sales',
-                    properties: [
-                        { name: 'Total', type: 'formula', id: 'sales_total', expression: 'price * qty' },
-                        { name: 'Status', type: 'status', id: 'sales_status' }
-                    ]
-                }],
-                ['inventory', {
-                    databaseTitle: 'Inventory',
-                    properties: [
-                        { name: 'Stock', type: 'number', id: 'inv_stock' },
-                        { name: 'Linked Sales', type: 'rollup', id: 'inv_linked',
-                          referencedDatabaseId: 'sales', referencedProperty: 'Total' }
-                    ]
-                }],
-                ['reports', {
-                    databaseTitle: 'Reports',
-                    properties: [
-                        { name: 'Summary', type: 'formula', id: 'report_summary', expression: 'sum(linked)' }
-                    ]
-                }]
-            ]);
-
-            const result = buildReferenceChains(
-                complexDbMap,
-                new Map(),
-                new Map(),
-                {}
-            );
-
-            expect(Array.isArray(result)).toBe(true);
-        });
-
-        test('참조 체인 결과 일관성 검증', () => {
-            const result1 = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap
-            );
-
-            const result2 = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap
-            );
-
-            // 같은 입력에서 같은 결과 반환해야 함
-            expect(result1.length).toBe(result2.length);
-        });
-
-        test('디버그 모드와 일반 모드 결과 동일', () => {
-            const resultNormal = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap,
-                false
-            );
-
-            const resultDebug = buildReferenceChains(
-                mockDbPropertiesMap,
-                mockPropertyIdMapByDb,
-                mockPropertyNameMapByDb,
-                mockGlobalPropertyIdMap,
-                true
-            );
-
-            expect(resultNormal.length).toBe(resultDebug.length);
         });
     });
 });
