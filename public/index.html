@@ -4,17 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Notion 데이터베이스를 효율적으로 분석하고 시각화하세요">
-    <meta name="theme-color" content="#ffffff">
-    <title>Notion DB 뷰어 - 따뜻한 효율성</title>
-    
+    <meta name="theme-color" content="#0B0D12">
+    <title>NotionDB — 미니멀 데이터베이스 분석</title>
+
     <!-- 스타일시트 -->
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;500;600;700&family=Pretendard:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="app" class="app-root">
@@ -24,12 +24,13 @@
                 <div class="login-card">
                     <!-- 브랜드 로고 -->
                     <div class="login-brand">
-                        <span class="brand-icon" aria-label="책 아이콘">📚</span>
+                        <span class="brand-mark" aria-hidden="true">◆</span>
+                        <span class="brand-wordmark">NotionDB</span>
                     </div>
 
                     <!-- 설명 텍스트 -->
                     <section class="login-description">
-                        <p>Notion 데이터베이스를 효율적으로 분석하고<br>시각화하세요.</p>
+                        <p>Notion 데이터베이스의 구조적 위험을<br>진단하고 시각화하세요.</p>
                         <ul class="feature-list" aria-label="기능 목록">
                             <li class="feature-item">
                                 <span class="feature-icon" aria-hidden="true">✓</span>
@@ -41,7 +42,7 @@
                             </li>
                             <li class="feature-item">
                                 <span class="feature-icon" aria-hidden="true">✓</span>
-                                <span class="feature-text">역관계 시각화</span>
+                                <span class="feature-text">참조 체인 시각화</span>
                             </li>
                         </ul>
                     </section>
@@ -49,7 +50,6 @@
                     <!-- CTA 버튼 -->
                     <div class="login-actions">
                         <a href="/auth/notion/login" class="btn btn-primary btn-large" role="button">
-                            <span class="btn-icon" aria-hidden="true">🔐</span>
                             <span class="btn-text">Notion으로 로그인</span>
                         </a>
                     </div>
@@ -68,36 +68,44 @@
             <aside class="sidebar" role="navigation" aria-label="사이드바">
                 <div class="sidebar-header">
                     <div class="app-logo">
-                        <span class="logo-icon" aria-hidden="true">📚</span>
+                        <span class="logo-mark" aria-hidden="true">◆</span>
                         <span class="logo-text">NotionDB</span>
                     </div>
                 </div>
 
-                <nav class="sidebar-nav">
-                    <div class="nav-section">
-                        <button 
-                            class="nav-item is-active" 
-                            id="databasesNavBtn"
-                            data-view="databases"
-                            aria-expanded="false"
-                            aria-controls="databasesTabs"
+                <div class="sidebar-search">
+                    <div class="search-box">
+                        <span class="search-icon" aria-hidden="true">🔍</span>
+                        <input
+                            type="text"
+                            id="databaseSearchInput"
+                            class="search-input"
+                            placeholder="데이터베이스 검색..."
+                            aria-label="데이터베이스 검색"
+                            data-action="search"
                         >
-                            <span class="nav-icon" aria-hidden="true">📊</span>
-                            <span class="nav-text">데이터베이스</span>
-                            <span class="nav-expand-icon" id="databasesExpandIcon" class="is-hidden">▼</span>
-                        </button>
-                        
-                        <!-- 데이터베이스 선택 시 표시되는 하위 탭 -->
-                        <div class="nav-sub-items is-hidden" id="databasesTabs" role="group">
-                            <button 
-                                class="nav-sub-item is-active" 
-                                data-tab="analysis"
-                                aria-label="분석 탭"
-                            >
-                                <span class="nav-icon" aria-hidden="true">📈</span>
-                                <span class="nav-text">분석</span>
-                            </button>
-                        </div>
+                    </div>
+                    <button
+                        id="refreshDatabasesBtn"
+                        class="icon-btn"
+                        data-action="refresh-databases"
+                        aria-label="DB 목록 새로 고침"
+                        title="DB 목록 새로 고침"
+                    >
+                        <span class="material-icons-outlined" aria-hidden="true">refresh</span>
+                    </button>
+                </div>
+
+                <div class="sidebar-list-header">
+                    <span class="sidebar-list-title">데이터베이스</span>
+                    <span id="databasesCount" class="count-text" aria-live="polite">0개</span>
+                </div>
+
+                <!-- 데이터베이스 목록 -->
+                <nav id="databasesList" class="sidebar-db-list" role="list" aria-label="데이터베이스 목록">
+                    <div class="loading-card" role="status" aria-label="로딩 중">
+                        <div class="loading-spinner"></div>
+                        <p>로딩 중...</p>
                     </div>
                 </nav>
 
@@ -114,103 +122,32 @@
 
             <!-- 메인 콘텐츠 -->
             <main class="main-content">
-                <!-- 데이터베이스 목록 섹션 -->
-                <section id="databasesView" class="view-section">
-                    <header class="page-header">
-                        <h1 class="page-title">데이터베이스</h1>
-                        <p class="page-subtitle">당신의 Notion 워크스페이스에서 사용 가능한 데이터베이스들입니다</p>
-                    </header>
-
-                    <!-- 검색 및 필터링 -->
-                    <div class="databases-controls">
-                        <div class="search-box">
-                            <span class="search-icon" aria-hidden="true">🔍</span>
-                            <input 
-                                type="text" 
-                                id="databaseSearchInput" 
-                                class="search-input" 
-                                placeholder="데이터베이스 검색..."
-                                aria-label="데이터베이스 검색"
-                                data-action="search"
-                            >
-                        </div>
-                        <div class="databases-info">
-                            <span id="databasesCount" class="count-text" aria-live="polite">총 0개</span>
-                            <button 
-                                id="refreshDatabasesBtn" 
-                                class="refresh-button-morphing" 
-                                data-action="refresh-databases"
-                                aria-label="DB 목록 새로 고침"
-                                title="DB 목록 새로 고침"
-                            >
-                                <span class="material-icons-outlined" aria-hidden="true">refresh</span>
-                            </button>
-                        </div>
+                <!-- 빈 상태 (데이터베이스 미선택) -->
+                <section id="databasesView" class="view-section empty-state-view">
+                    <div class="empty-state-hero">
+                        <div class="empty-state-icon" aria-hidden="true">◇</div>
+                        <h1>데이터베이스를 선택하세요</h1>
+                        <p>왼쪽 목록에서 분석할 Notion 데이터베이스를 클릭하면<br>데이터 품질과 참조 체인 분석 결과가 여기에 표시됩니다.</p>
                     </div>
-
-                    <!-- 데이터베이스 그리드 -->
-                    <div id="databasesList" class="databases-grid" role="list">
-                        <div class="loading-card" role="status" aria-label="로딩 중">
-                            <div class="loading-spinner"></div>
-                            <p>데이터베이스 로딩 중...</p>
-                        </div>
-                    </div>
-
-                    <!-- 페이지네이션 -->
-                    <nav 
-                        id="databasesPagination" 
-                        class="pagination is-hidden" 
-                        role="navigation"
-                        aria-label="페이지 네비게이션"
-                    >
-                        <button 
-                            class="pagination-btn" 
-                            id="prevBtn"
-                            data-action="prev-page"
-                            aria-label="이전 페이지"
-                        >
-                            <span>← 이전</span>
-                        </button>
-                        <div class="pagination-info">
-                            <span id="pageInfo" class="page-text" aria-live="polite">1 / 1</span>
-                        </div>
-                        <button 
-                            class="pagination-btn" 
-                            id="nextBtn"
-                            data-action="next-page"
-                            aria-label="다음 페이지"
-                        >
-                            <span>다음 →</span>
-                        </button>
-                    </nav>
                 </section>
 
                 <!-- 데이터베이스 상세 보기 -->
                 <section id="databaseDetail" class="view-section is-hidden">
-                    <header class="detail-header">
-                        <div class="detail-title-section">
-                            <h1 id="databaseTitle" class="detail-title"></h1>
-                        </div>
-                        <div class="detail-actions">
-                            <button 
-                                id="refreshBtn" 
-                                class="refresh-button-morphing" 
-                                data-action="refresh-current"
-                                aria-label="데이터 새로 고침"
-                                title="데이터 새로 고침"
-                            >
-                                <span class="material-icons-outlined" aria-hidden="true">refresh</span>
-                            </button>
-                        </div>
+                    <header class="content-topbar">
+                        <h1 id="databaseTitle" class="detail-title"></h1>
+                        <button
+                            id="refreshBtn"
+                            class="icon-btn"
+                            data-action="refresh-current"
+                            aria-label="데이터 새로 고침"
+                            title="데이터 새로 고침"
+                        >
+                            <span class="material-icons-outlined" aria-hidden="true">refresh</span>
+                        </button>
                     </header>
 
-                    <!-- 분석 탭 -->
-                    <div 
-                        id="analysisTab" 
-                        class="tab-content is-hidden"
-                        role="tabpanel"
-                        aria-labelledby="analysisTabBtn"
-                    >
+                    <!-- 분석 콘텐츠 -->
+                    <div id="analysisTab" class="tab-content">
                         <div id="analysisPlaceholder" class="card">
                             <div class="card-content">
                                 <div class="loading-spinner"></div>

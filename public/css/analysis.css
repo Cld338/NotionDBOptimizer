@@ -164,32 +164,6 @@
     gap: var(--spacing-md);
 }
 
-/* ?�질 ?�수 배�? - ?�형 */
-.quality-badge {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    color: white;
-    box-shadow: 0 6px 18px rgba(232, 148, 74, 0.25);
-    font-weight: 700;
-    flex-shrink: 0;
-}
-
-.badge-value {
-    font-size: 2.2rem;
-    line-height: 1;
-}
-
-.badge-unit {
-    font-size: 0.8rem;
-    opacity: 0.9;
-    margin-top: 2px;
-}
-
 .quality-info {
     display: flex;
     flex-direction: column;
@@ -297,8 +271,8 @@
     top: 0;
     bottom: 0;
     width: 2px;
-    background: rgba(232, 148, 74, 0.15);
-    border-left: 1px dashed rgba(232, 148, 74, 0.4);
+    background: rgba(111, 123, 247, 0.15);
+    border-left: 1px dashed rgba(111, 123, 247, 0.4);
 }
 
 .progress-fill {
@@ -327,8 +301,8 @@
 }
 
 .metric-card {
-    background: linear-gradient(135deg, #FFFFFF 0%, #F5EDE3 100%);
-    border: 1px solid #F0D4C4;
+    background: linear-gradient(135deg, #181B24 0%, #14171D 100%);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 24px;
     text-align: center;
@@ -344,34 +318,34 @@
     right: -40%;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, rgba(200, 118, 95, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(111, 123, 247, 0.08) 0%, transparent 70%);
     border-radius: 50%;
 }
 
 .metric-card:hover::before {
-    background: radial-gradient(circle, rgba(232, 148, 74, 0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(111, 123, 247, 0.12) 0%, transparent 70%);
 }
 
 .metric-card:hover {
-    border-color: #E8944A;
-    background: linear-gradient(135deg, #FFFFFF 0%, #FEF5F0 100%);
-    box-shadow: 0 12px 24px rgba(232, 148, 74, 0.15);
+    border-color: var(--color-primary-deep);
+    background: linear-gradient(135deg, #1B1F27 0%, #181B24 100%);
+    box-shadow: 0 12px 24px rgba(111, 123, 247, 0.15);
 }
 
 .metric-card.critical {
-    border-color: #D47D3C;
+    border-color: var(--color-error);
 }
 
 .metric-card.critical:hover {
-    border-color: #D47D3C;
-    background: linear-gradient(135deg, #FFF9F4 0%, #FEFAF6 100%);
-    box-shadow: 0 4px 12px rgba(212, 125, 60, 0.18);
+    border-color: var(--color-error);
+    background: linear-gradient(135deg, #181B2E 0%, #14171D 100%);
+    box-shadow: 0 4px 12px rgba(249, 112, 102, 0.18);
 }
 
 .metric-label {
     font-size: 12px;
     font-weight: 600;
-    color: #999;
+    color: var(--color-text-muted);
     text-transform: uppercase;
     letter-spacing: 1px;
     margin-bottom: 12px;
@@ -386,7 +360,7 @@
 .metric-value {
     font-size: 32px;
     font-weight: 800;
-    color: #1a1a1a;
+    color: var(--color-accent);
     margin: 8px 0;
     letter-spacing: -0.4px;
     position: relative;
@@ -395,7 +369,7 @@
 
 .metric-desc {
     font-size: 12px;
-    color: #999;
+    color: var(--color-text-muted);
     font-weight: 500;
     margin-top: 8px;
     position: relative;
@@ -431,8 +405,8 @@
 
 /* 깊�? 참조 경로 ?�이??*/
 .deep-chain-item {
-    background: #fafaf8;
-    border: 1px solid #dfe8e3;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: 20px;
     transition: all 300ms ease;
@@ -509,7 +483,7 @@
     color: white;
     white-space: nowrap;
     flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(232, 148, 74, 0.15);
+    box-shadow: 0 2px 6px rgba(111, 123, 247, 0.15);
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -699,7 +673,7 @@
 
 /* 섹션 래퍼 - 최적화된 배경 추가 - 프리미엄 스타일 */
 .chain-sections-wrapper .chain-section:last-child {
-    background: linear-gradient(135deg, rgba(232, 148, 74, 0.06) 0%, rgba(232, 148, 74, 0.02) 100%);
+    background: linear-gradient(135deg, rgba(111, 123, 247, 0.06) 0%, rgba(111, 123, 247, 0.02) 100%);
     border-radius: 20px;
     padding: 32px;
     border: 1.5px solid var(--color-border);
@@ -715,7 +689,7 @@
     right: -10%;
     width: 300px;
     height: 300px;
-    background: radial-gradient(circle, rgba(200, 118, 95, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(111, 123, 247, 0.08) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
 }
@@ -740,7 +714,7 @@
     right: -60px;
     width: 200px;
     height: 200px;
-    background: radial-gradient(circle, rgba(232, 148, 74, 0.06) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(111, 123, 247, 0.06) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     opacity: 0;
@@ -881,7 +855,7 @@
     right: -40px;
     width: 100px;
     height: 100px;
-    background: radial-gradient(circle, rgba(200, 118, 95, 0.08) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(111, 123, 247, 0.08) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     opacity: 0;
@@ -1013,7 +987,7 @@
 
 .optimization-accordion-item.active {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    background: linear-gradient(135deg, rgba(232, 148, 74, 0.05) 0%, rgba(255, 255, 255, 0.9) 100%);
+    background: linear-gradient(135deg, rgba(111, 123, 247, 0.05) 0%, rgba(20, 23, 29, 0.9) 100%);
 }
 
 /* ?�선?�위�??�상 - 개선???�각??계층 */
@@ -1023,12 +997,12 @@
 
 .optimization-accordion-item.priority-high:hover {
     border-color: var(--priority-high);
-    background: linear-gradient(135deg, rgba(176, 75, 50, 0.06), rgba(255, 255, 255, 0.95));
+    background: linear-gradient(135deg, rgba(249, 112, 102, 0.06), rgba(20, 23, 29, 0.95));
 }
 
 .optimization-accordion-item.priority-high.active {
-    background: linear-gradient(135deg, rgba(176, 75, 50, 0.06), rgba(255, 255, 255, 0.95));
-    box-shadow: 0 8px 24px rgba(176, 75, 50, 0.15);
+    background: linear-gradient(135deg, rgba(249, 112, 102, 0.06), rgba(20, 23, 29, 0.95));
+    box-shadow: 0 8px 24px rgba(249, 112, 102, 0.15);
     border-left-color: var(--priority-high);
 }
 
@@ -1043,12 +1017,12 @@
 
 .optimization-accordion-item.priority-medium:hover {
     border-color: var(--priority-medium);
-    background: linear-gradient(135deg, rgba(196, 146, 77, 0.06), rgba(255, 255, 255, 0.95));
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.06), rgba(20, 23, 29, 0.95));
 }
 
 .optimization-accordion-item.priority-medium.active {
-    background: linear-gradient(135deg, rgba(196, 146, 77, 0.06), rgba(255, 255, 255, 0.95));
-    box-shadow: 0 8px 24px rgba(196, 146, 77, 0.15);
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.06), rgba(20, 23, 29, 0.95));
+    box-shadow: 0 8px 24px rgba(251, 191, 36, 0.15);
     border-left-color: var(--priority-medium);
 }
 
@@ -1063,12 +1037,12 @@
 
 .optimization-accordion-item.priority-low:hover {
     border-color: var(--priority-low);
-    background: linear-gradient(135deg, rgba(126, 141, 133, 0.05), rgba(255, 255, 255, 0.95));
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.05), rgba(20, 23, 29, 0.95));
 }
 
 .optimization-accordion-item.priority-low.active {
-    background: linear-gradient(135deg, rgba(126, 141, 133, 0.05), rgba(255, 255, 255, 0.95));
-    box-shadow: 0 8px 24px rgba(126, 141, 133, 0.1);
+    background: linear-gradient(135deg, rgba(96, 165, 250, 0.05), rgba(20, 23, 29, 0.95));
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.1);
     border-left-color: var(--priority-low);
 }
 
@@ -1098,15 +1072,15 @@
 }
 
 .optimization-accordion-item:hover .optimization-accordion-header {
-    background: rgba(232, 148, 74, 0.02);
+    background: rgba(111, 123, 247, 0.02);
 }
 
 .optimization-accordion-item:active .optimization-accordion-header {
-    background: rgba(232, 148, 74, 0.05);
+    background: rgba(111, 123, 247, 0.05);
 }
 
 .optimization-accordion-item.active .optimization-accordion-header {
-    background: rgba(232, 148, 74, 0.04);
+    background: rgba(111, 123, 247, 0.04);
 }
 
 /* ?�더 콘텐�?*/
@@ -1140,15 +1114,15 @@
 }
 
 .optimization-accordion-item.priority-high .optimization-priority-badge {
-    background: linear-gradient(135deg, var(--priority-high) 0%, #A65B2A 100%);
+    background: linear-gradient(135deg, var(--priority-high) 0%, #C2453A 100%);
 }
 
 .optimization-accordion-item.priority-medium .optimization-priority-badge {
-    background: linear-gradient(135deg, var(--priority-medium) 0%, #F5B878 100%);
+    background: linear-gradient(135deg, var(--priority-medium) 0%, #D97706 100%);
 }
 
 .optimization-accordion-item.priority-low .optimization-priority-badge {
-    background: linear-gradient(135deg, var(--priority-low) 0%, #D49652 100%);
+    background: linear-gradient(135deg, var(--priority-low) 0%, #3B82F6 100%);
 }
 
 /* ?�더 ?�스??- 명확???�각??계층 */
@@ -1226,13 +1200,13 @@
 }
 
 .optimization-accordion-item:hover .optimization-toggle-icon {
-    background: rgba(200, 118, 95, 0.1);
+    background: rgba(111, 123, 247, 0.1);
     transform: scale(1.1);
 }
 
 .optimization-accordion-item.active .optimization-toggle-icon {
     transform: rotate(180deg) scale(1.1);
-    background: rgba(200, 118, 95, 0.15);
+    background: rgba(111, 123, 247, 0.15);
 }
 
 /* ?�코?�언 콘텐�?- 매끈???�환 */
@@ -1249,14 +1223,14 @@
     max-height: 1000px;
     opacity: 1;
     padding: 22px 20px 20px 20px;
-    border-top: 2px solid rgba(200, 118, 95, 0.1);
+    border-top: 2px solid rgba(111, 123, 247, 0.1);
 }
 
 /* ?�션 - 명확???�각??계층 */
 .optimization-section {
     margin-bottom: 20px;
     padding: 16px 0;
-    border-bottom: 1px solid rgba(200, 118, 95, 0.08);
+    border-bottom: 1px solid rgba(111, 123, 247, 0.08);
 }
 
 .optimization-section:last-child {
@@ -1290,7 +1264,7 @@
     text-align: center;
     color: var(--color-text-muted);
     font-size: 0.96rem;
-    background: linear-gradient(135deg, rgba(200, 118, 95, 0.05), rgba(107, 68, 35, 0.02));
+    background: linear-gradient(135deg, rgba(111, 123, 247, 0.05), rgba(111, 123, 247, 0.02));
     border-radius: 14px;
     border: 2px dashed var(--color-border);
     font-weight: 500;
@@ -1304,7 +1278,7 @@
 /* 링크 버튼 - ?�리미엄 CTA */
 .link-button {
     padding: var(--spacing-sm) var(--spacing-lg);
-    background: linear-gradient(135deg, var(--color-primary) 0%, #D17A3D 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-deep) 100%);
     color: white;
     border: none;
     border-radius: var(--radius-md);
@@ -1316,13 +1290,13 @@
     display: inline-flex;
     align-items: center;
     gap: var(--spacing-sm);
-    box-shadow: 0 4px 12px rgba(200, 118, 95, 0.25);
+    box-shadow: 0 4px 12px rgba(111, 123, 247, 0.25);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .link-button:hover {
-    box-shadow: 0 8px 20px rgba(200, 118, 95, 0.35);
+    box-shadow: 0 8px 20px rgba(111, 123, 247, 0.35);
     transform: translateY(-2px);
 }
 
@@ -1354,7 +1328,7 @@
     }
 
     .chain-sections-wrapper .chain-section:last-child {
-        background: linear-gradient(135deg, rgba(200, 118, 95, 0.06), rgba(107, 68, 35, 0.02));
+        background: linear-gradient(135deg, rgba(111, 123, 247, 0.06), rgba(111, 123, 247, 0.02));
         border-radius: 16px;
         padding: 24px;
         margin: 0;
@@ -1438,7 +1412,7 @@
     }
 
     .chain-sections-wrapper .chain-section:last-child {
-        background: linear-gradient(135deg, rgba(200, 118, 95, 0.04), rgba(107, 68, 35, 0.02));
+        background: linear-gradient(135deg, rgba(111, 123, 247, 0.04), rgba(111, 123, 247, 0.02));
         border-radius: 14px;
         padding: 18px;
         margin: 0;
@@ -1714,14 +1688,15 @@
 }
 
 .optimization-modal-content {
-    background-color: white;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
     border-radius: 16px;
     max-width: 500px;
     width: 90%;
     max-height: 80vh;
     overflow-y: auto;
     animation: optimizationSlideUp 0.3s ease;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--shadow-lg);
 }
 
 @keyframes optimizationSlideUp {
@@ -1744,24 +1719,24 @@
 }
 
 .optimization-modal.high .optimization-modal-header {
-    border-bottom-color: #ff6b6b;
-    background: linear-gradient(135deg, #fff5f5 0%, #ffe0e0 100%);
+    border-bottom-color: var(--color-error);
+    background: rgba(248, 113, 113, 0.10);
 }
 
 .optimization-modal.medium .optimization-modal-header {
-    border-bottom-color: #ffa94d;
-    background: linear-gradient(135deg, #fffaf0 0%, #ffe8cc 100%);
+    border-bottom-color: var(--color-warning);
+    background: rgba(251, 191, 36, 0.10);
 }
 
 .optimization-modal.low .optimization-modal-header {
-    border-bottom-color: #4dabf7;
-    background: linear-gradient(135deg, #f0f9ff 0%, #d5ebf7 100%);
+    border-bottom-color: var(--color-primary);
+    background: rgba(111, 123, 247, 0.10);
 }
 
 .optimization-modal-title {
     font-size: 1.3rem;
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--color-text-dark);
 }
 
 .optimization-modal-close {
@@ -1769,7 +1744,7 @@
     border: none;
     font-size: 1.5rem;
     cursor: pointer;
-    color: #7f8c8d;
+    color: var(--color-text-muted);
     transition: color 0.3s ease;
     padding: 0;
     width: 32px;
@@ -1780,7 +1755,7 @@
 }
 
 .optimization-modal-close:hover {
-    color: #2c3e50;
+    color: var(--color-text-dark);
 }
 
 .optimization-modal-body {
@@ -1798,7 +1773,7 @@
 .optimization-modal-section-label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #34495e;
+    color: var(--color-text-dark);
     margin-bottom: 8px;
     text-transform: uppercase;
     display: flex;
@@ -1814,7 +1789,7 @@
 
 .optimization-modal-section-text {
     font-size: 0.95rem;
-    color: #555;
+    color: var(--color-text-light);
     line-height: 1.6;
 }
 
@@ -1822,10 +1797,10 @@
 .optimization-card-cta {
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--color-border);
     font-weight: 600;
     font-size: 0.85rem;
-    color: #2c3e50;
+    color: var(--color-text-dark);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1834,7 +1809,7 @@
 }
 
 .optimization-card-cta:hover {
-    color: #0084ff;
+    color: var(--color-primary);
     gap: 12px;
 }
 

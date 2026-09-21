@@ -5,9 +5,21 @@
     justify-content: center;
     min-height: 100vh;
     padding: var(--spacing-md);
-    background: var(--color-secondary);
+    background: var(--color-app-bg);
     position: relative;
     overflow: hidden;
+}
+
+.login-container::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(111, 123, 247, 0.14) 0%, transparent 65%);
+    pointer-events: none;
 }
 
 .login-card-wrapper {
@@ -22,29 +34,39 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-lg);
     padding: 40px;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
     position: relative;
     z-index: var(--z-base);
 }
 
 .login-brand {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
     margin-bottom: var(--spacing-xl);
 }
 
-.brand-icon {
-    font-size: 3rem;
-    display: inline-block;
+.brand-mark {
+    color: var(--color-primary);
+    font-size: 1.4rem;
+}
+
+.brand-wordmark {
+    font-family: var(--font-heading);
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--color-text-dark);
+    letter-spacing: -0.2px;
 }
 
 .login-description p {
     color: var(--color-text-dark);
     margin-bottom: var(--spacing-lg);
     line-height: 1.8;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 500;
     text-align: center;
-    font-family: var(--font-heading);
 }
 
 .feature-list {
@@ -53,6 +75,7 @@
     gap: var(--spacing-md);
     padding: var(--spacing-lg);
     background: var(--color-secondary);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     margin-bottom: var(--spacing-xl);
 }
@@ -61,18 +84,18 @@
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
-    color: var(--color-text-dark);
-    font-size: 0.95rem;
+    color: var(--color-text-light);
+    font-size: 0.9rem;
 }
 
 .feature-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
     color: var(--color-primary);
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: bold;
     flex-shrink: 0;
 }
@@ -83,7 +106,7 @@
     margin-top: var(--spacing-lg);
     border-top: 1px solid var(--color-divider);
     color: var(--color-text-muted);
-    font-size: 0.85rem;
+    font-size: 0.82rem;
 }
 
 /* ============ 버튼 스타일 ============ */
@@ -112,39 +135,14 @@
 
 .btn-primary:hover {
     background: var(--color-primary-deep);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
     box-shadow: var(--shadow-md);
 }
 
 .btn-large {
-    padding: 16px 32px;
-    font-size: 1.1rem;
+    padding: 14px 32px;
+    font-size: 1.05rem;
     width: 100%;
-}
-
-/* 아이콘 버튼 */
-.btn-icon {
-    padding: 8px 12px;
-    width: auto;
-    height: auto;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-    color: var(--color-text-light);
-    border-radius: var(--radius-md);
-    gap: 0.5char;
-    font-size: 0.9rem;
-}
-
-.btn-icon:hover {
-    background: var(--color-secondary);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-sm);
-}
-
-.btn-icon:active {
-    transform: translateY(0);
 }
 
 /* 보조 버튼 (Secondary) */
@@ -158,52 +156,15 @@
 }
 
 .btn-secondary:hover {
-    background: var(--color-secondary);
+    background: var(--color-hover);
     border-color: var(--color-primary);
     color: var(--color-primary);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(200, 118, 95, 0.15);
-}
-
-.btn-secondary:active {
-    transform: translateY(0);
 }
 
 /* 로딩 상태 */
 .btn.loading {
     opacity: 0.7;
     pointer-events: none;
-}
-
-.btn.loading .btn-refresh-icon {
-    display: inline-block;
-    animation: spin-smooth 1.5s linear infinite;
-}
-
-@keyframes spin-smooth {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* 버튼 내 아이콘 및 텍스트 */
-.btn-refresh-icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform var(--transition-fast);
-}
-
-.btn-refresh-text {
-    display: inline;
-    white-space: nowrap;
-}
-
-.btn-icon .btn-refresh-text {
-    display: none;
 }
 
 .btn:disabled {
